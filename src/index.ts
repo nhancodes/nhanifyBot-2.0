@@ -56,6 +56,7 @@ async function updateAuth(REFRESH_TWITCH_TOKEN: string) {
   console.log({ data });
   if ("access_token" in data) {
     auth.BOT_TWITCH_TOKEN = data.access_token;
+    auth.BOT_REFRESH_TWITCH_TOKEN = data.refresh_token;
     writeFileSync("./src/auth.json", JSON.stringify(auth));
   } else {
     console.log("THE REFRESHTOKEN STATUS", data.status);

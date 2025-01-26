@@ -18,7 +18,10 @@
   "homepage": "https://github.com/nonbots/nhanifyBot-2.0#readme",
   "description": "",
   "devDependencies": {
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.10.10",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "nhanifybot-2.0": "file:"
   }
 }

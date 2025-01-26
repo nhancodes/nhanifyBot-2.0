@@ -5,15 +5,20 @@ let websocketSessionID: string;
 // Start executing the bot from here
 (async () => {
   // Verify that the authentication is valid
-  await getAuth();
-
+  try {
+    await getAuth();
+  }catch (e:any) {
+    if(e.message === "401") {
+      await updateAuth(auth.BOT_REFRESH_TWITCH_TOKEN);
+    }
+  }
   // Start WebSocket client and register handlers
   const websocketClient = startWebSocketClient();
 })();
 
 function startWebSocketClient() {
   let websocketClient = new WebSocket(EVENTSUB_WEBSOCKET_URL);
-  console.log(websocketClient);
+  console.log('Websocket client created');
   websocketClient.addEventListener('error', console.error);
 
   let start = 0;
@@ -27,10 +32,13 @@ function startWebSocketClient() {
     console.log('WebSocket connection closed on ' + EVENTSUB_WEBSOCKET_URL);
   });
 
-  websocketClient.addEventListener('message', (event) => {
-    start = performance.now();
-    console.log(event.data.toString());
-    handleWebSocketMessage(JSON.parse(event.data.toString()));
+  websocketClient.addEventListener('message', (event: any) => {
+    start = (performance.now() - start) / 1000;
+    console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
+    if (event.data) {
+      console.log(event.data.toString());
+      handleWebSocketMessage(JSON.parse(event.data.toString()));
+    } 
   });
 
   return websocketClient;
@@ -119,17 +127,16 @@ async function getAuth() {
       'Authorization': 'OAuth ' + auth.BOT_TWITCH_TOKEN
     }
   });
-
+  console.log("AUTH", response.status);
   if (response.status != 200) {
     let data = await response.json();
     console.error("Token is not valid. /oauth2/validate returned status code " + response.status);
-    console.error(data);
+    throw Error(`${response.status}`);
     //process.exit(1);
-    await updateAuth(auth.BOT_REFRESH_TWITCH_TOKEN);
-    return;
+    // take this call outside 
+    //await updateAuth(auth.BOT_REFRESH_TWITCH_TOKEN);
   }
-
-  console.log("Validated token.");
+    console.log("Validated token.");
 }
 
 async function refreshAuthToken(REFRESH_TWITCH_TOKEN: string) {
@@ -155,7 +162,7 @@ async function refreshAuthToken(REFRESH_TWITCH_TOKEN: string) {
 
 async function updateAuth(REFRESH_TWITCH_TOKEN: string) {
   let data = await refreshAuthToken(REFRESH_TWITCH_TOKEN);
-  console.log({ data });
+  //console.log({ data });
   if ("access_token" in data) {
     auth.BOT_TWITCH_TOKEN = data.access_token;
     auth.BOT_REFRESH_TWITCH_TOKEN = data.refresh_token;

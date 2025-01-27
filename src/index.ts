@@ -102,7 +102,9 @@ async function registerEventSubListeners() {
     let data = await response.json();
     console.error("Failed to subscribe to channel.chat.message. API call returned status code " + response.status);
     console.error(data);
-    process.exit(1);
+    const error = new Error(`${response.status}`);
+    error.name = "unauthorizedReadChatEventSub";
+    throw error;
   } else {
     const data = await response.json();
     console.log(`Subscribed to channel.chat.message [${data.data[0].id}]`);

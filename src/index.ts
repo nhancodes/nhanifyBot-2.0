@@ -5,13 +5,14 @@ let websocketSessionID: string;
 // Start executing the bot from here
 (async () => {
   // Verify that the authentication is valid
-  try {
+  /*try {
     await getAuth();
-  }catch (e:any) {
-    if(e.message === "401") {
+  } catch (e: any) {
+    if (e.message === "401") {
       await updateAuth(auth.BOT_REFRESH_TWITCH_TOKEN);
     }
   }
+  */
   // Start WebSocket client and register handlers
   const websocketClient = startWebSocketClient();
 })();
@@ -38,13 +39,15 @@ function startWebSocketClient() {
     if (event.data) {
       console.log(event.data.toString());
       handleWebSocketMessage(JSON.parse(event.data.toString()));
-    } 
+    }
   });
 
   return websocketClient;
 }
 
+//let registerCallCount = 0;
 function handleWebSocketMessage(data: any) {
+  //  console.log({ registerCallCount });
   switch (data.metadata.message_type) {
     case 'session_welcome': // First message you get from the WebSocket server when connecting
       websocketSessionID = data.payload.session.id; // Register the Session ID it gives us
@@ -59,9 +62,9 @@ function handleWebSocketMessage(data: any) {
           console.log(`MSG #${data.payload.event.broadcaster_user_login} <${data.payload.event.chatter_user_login}> ${data.payload.event.message.text}`);
 
           // Then check to see if that message was "HeyGuys"
-          if (data.payload.event.message.text.trim() == "HeyGuys") {
+          if (data.payload.event.message.text.trim() === "test") {
             // If so, send back "VoHi:wYo" to the chatroom
-            sendChatMessage("VoHiYo")
+            sendChatMessage("it works")
           }
 
           break;
@@ -72,6 +75,8 @@ function handleWebSocketMessage(data: any) {
 
 async function registerEventSubListeners() {
   // Register channel.chat.message
+  // registerCallCount += 1;
+  console.count("CALLED REGISTEREVENT");
   let response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
     method: 'POST',
     headers: {
@@ -103,6 +108,7 @@ async function registerEventSubListeners() {
     console.log(`Subscribed to channel.chat.message [${data.data[0].id}]`);
   }
 }
+
 async function sendChatMessage(chatMessage: string) {
   let response = await fetch('https://api.twitch.tv/helix/chat/messages', {
     method: 'POST',
@@ -117,6 +123,13 @@ async function sendChatMessage(chatMessage: string) {
       message: chatMessage
     })
   });
+  if (response.status != 200) {
+    let data = await response.json();
+    console.error("Failed to send chat message");
+    console.error(data);
+  } else {
+    console.log("Sent chat message: " + chatMessage);
+  }
 }
 
 async function getAuth() {
@@ -136,7 +149,7 @@ async function getAuth() {
     // take this call outside 
     //await updateAuth(auth.BOT_REFRESH_TWITCH_TOKEN);
   }
-    console.log("Validated token.");
+  console.log("Validated token.");
 }
 
 async function refreshAuthToken(REFRESH_TWITCH_TOKEN: string) {

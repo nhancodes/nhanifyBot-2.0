@@ -61,7 +61,7 @@ function handleWebSocketMessage(data: any) {
           // Then check to see if that message was "HeyGuys"
           if (data.payload.event.message.text.trim() == "HeyGuys") {
             // If so, send back "VoHi:wYo" to the chatroom
-            //sendChatMessage("VoHiYo")
+            sendChatMessage("VoHiYo")
           }
 
           break;
@@ -103,22 +103,22 @@ async function registerEventSubListeners() {
     console.log(`Subscribed to channel.chat.message [${data.data[0].id}]`);
   }
 }
-/*async function sendChatMessage(chatMessage) {
+async function sendChatMessage(chatMessage: string) {
   let response = await fetch('https://api.twitch.tv/helix/chat/messages', {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ' + OAUTH_TOKEN,
-      'Client-Id': CLIENT_ID,
+      'Authorization': 'Bearer ' + auth.BOT_TWITCH_TOKEN,
+      'Client-Id': auth.CLIENT_ID,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      broadcaster_id: CHAT_CHANNEL_USER_ID,
-      sender_id: BOT_USER_ID,
+      broadcaster_id: auth.BROADCASTER_ID,
+      sender_id: auth.BOT_ID,
       message: chatMessage
     })
   });
 }
-*/
+
 async function getAuth() {
   // https://dev.twitch.tv/docs/authentication/validate-tokens/#how-to-validate-a-token
   let response = await fetch('https://id.twitch.tv/oauth2/validate', {

@@ -32,7 +32,8 @@ async function startWebSocketClient(EVENTSUB_WEBSOCKET_URL: string) {
       start = (performance.now() - start) / 1000;
       console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
       //const eventObj = JSON.parse(event.toString()) as anyEvent;
-      const eventObj = parseTwitchMessage(event.toString());
+      const eventObj = JSON.parse(event.toString());
+      //      const eventObj = parseTwitchMessage(event.toString());
       handleWebSocketMessage(eventObj);
     } catch (e) {
       console.error(e);
@@ -51,11 +52,11 @@ function parseTwitchMessage(jsonString: string): AnyMessage {
   } as AnyMessage;
 }
 //let registerCallCount = 0;
-async function handleWebSocketMessage(data: AnyMessage) {
+async function handleWebSocketMessage(data: any) {
   //  console.log({ registerCallCount });
 
   console.log({ data });
-  switch (data.message_type) {
+  switch (data.metadata.message_type) {
     //init oldconnection to undefined
     case 'session_welcome': // First message you get from the WebSocket server when connecting
       websocketSessionID = data.payload.session.id; // Register the Session ID it gives us
@@ -75,14 +76,16 @@ async function handleWebSocketMessage(data: AnyMessage) {
       websocketClients.push(await startWebSocketClient(data.payload.session.reconnect_url));
       break;
     case 'notification': // An EventSub notification has occurred, such as channel.chat.message
-      switch (data.payload.event.type) {
+      switch (data.metadata.subscription_type) {
         case 'channel.chat.message':
           // First, print the message to the program's console.
           console.log(`MSG #${data.payload.event.broadcaster_user_login} <${data.payload.event.chatter_user_login}> ${data.payload.event.message.text}`);
 
           // Then check to see if that message was "HeyGuys"
+          console.log("LOOK HERE", data.payload.event.message);
           if (data.payload.event.message.text.trim() === "test") {
             // If so, send back "VoHi:wYo" to the chatroom
+            console.log("TEST IS HERE");
             sendChatMessage("it works")
           }
           break;

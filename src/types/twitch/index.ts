@@ -1,4 +1,4 @@
-type MessageBase<MessageType extends String> = {
+type MessageBase<MessageType extends string> = {
   message_type: MessageType;
 };
 export interface WelcomeMessage extends MessageBase<'session_welcome'>{
@@ -41,12 +41,12 @@ export interface NotificationMessage extends MessageBase<'notification'>{
                 session_id: string,
             },
         },
-        event: Event,
+        event: ChannelChatMessageEvent,
     }
 }
 
 
-export interface ReconnectMessage extends MessageBase<'sesssion_reconnect'>{
+export interface ReconnectMessage extends MessageBase<'session_reconnect'>{
     metadata: {
         message_id: string,
         message_timestamp: string,
@@ -61,11 +61,11 @@ export interface ReconnectMessage extends MessageBase<'sesssion_reconnect'>{
         }
     }
 }
-type EventsubBase<EventType extends String> = {
-  event_type: EventType;
+type SubBase<SubType extends string> = {
+  sub_type: SubType;
 };
 
-interface ChannelChatMessageEvent extends EventsubBase<'channel.chat.message'> {
+export interface ChannelChatMessageEvent extends SubBase<'channel.chat.message'> {
     
       broadcaster_user_login: string,
       chatter_user_login: string,

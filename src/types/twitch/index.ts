@@ -1,5 +1,7 @@
-export interface WelcomeMessage {
-    message_type: "session_welcome",
+type MessageBase<MessageType extends String> = {
+  message_type: MessageType;
+};
+export interface WelcomeMessage extends MessageBase<'session_welcome'>{
     metadata: {
         message_id: string,
         message_timestamp: string
@@ -15,8 +17,7 @@ export interface WelcomeMessage {
     }
 }
 
-export interface NotificationMessage {
-    message_type: "notification",
+export interface NotificationMessage extends MessageBase<'notification'>{
     metadata: {
         message_id: string,
         message_timestamp: string,
@@ -35,40 +36,17 @@ export interface NotificationMessage {
                 broadcaster_user_id: string,
                 user_id: string,
             },
-            transport: {
+            transport: { //not in docs
                 method: "websocket",
                 session_id: string,
-                created_at: string,
             },
         },
-        event: {
-            type: "channel.chat.message",
-            version: 1,
-            condition: {
-                broadcaster_user_id: string,
-                user_id: string
-            },
-            transport: {
-                method: "websocket",
-            }
-        },
+        event: Event,
     }
 }
 
-export interface Event {
-    type: "channel.chat.message",
-    version: 1,
-    condition: {
-        broadcaster_user_id: string,
-        user_id: string
-    },
-    transport: {
-        method: "websocket",
-    }
-}
 
-export interface ReconnectMessage {
-    message_type: "session_reconnect",
+export interface ReconnectMessage extends MessageBase<'sesssion_reconnect'>{
     metadata: {
         message_id: string,
         message_timestamp: string,
@@ -82,6 +60,18 @@ export interface ReconnectMessage {
             reconnect_url: string
         }
     }
+}
+type EventsubBase<EventType extends String> = {
+  event_type: EventType;
+};
+
+interface ChannelChatMessageEvent extends EventsubBase<'channel.chat.message'> {
+    
+      broadcaster_user_login: string,
+      chatter_user_login: string,
+      message: {
+        text: string,
+      }
 }
 /*
 

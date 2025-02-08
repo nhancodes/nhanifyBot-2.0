@@ -78,6 +78,8 @@ async function handleWebSocketMessage(data: any) {
     case 'notification': // An EventSub notification has occurred, such as channel.chat.message
       switch (data.metadata.subscription_type) {
         case 'channel.chat.message':
+          //get the event 
+          //cons
           // First, print the message to the program's console.
           console.log(`MSG #${data.payload.event.broadcaster_user_login} <${data.payload.event.chatter_user_login}> ${data.payload.event.message.text}`);
 

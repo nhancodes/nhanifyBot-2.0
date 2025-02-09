@@ -79,11 +79,11 @@ async function startWebSocketClient(EVENTSUB_WEBSOCKET_URL: string) {
     console.log('WebSocket connection closed on ' + EVENTSUB_WEBSOCKET_URL);
   });
 
-  websocketClient.on('message', async (event: ArrayBuffer) => {
+  websocketClient.on('message', async (event: Buffer) => {
     try {
       start = (performance.now() - start) / 1000;
       console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
-      const eventObj = parseTwitchMessage(event.toString());
+      const eventObj = parseTwitchMessage(event.toString("utf8"));
       handleWebSocketMessage(eventObj);
     } catch (e) {
       console.error(e);
@@ -119,8 +119,8 @@ async function handleWebSocketMessage(data: AnyMessage) {
         case 'channel.chat.message':
           const parsedSubscription = {...data.payload.event, sub_type: data.payload.subscription.type} as ChannelChatMessageEvent;
           console.log(`MSG #${parsedSubscription.broadcaster_user_login} <${parsedSubscription.chatter_user_login}> ${parsedSubscription.message.text}`);
-          console.log(`${parsedSubscription.message.text.trim()} === ${parsedSubscription.message.text.trim() === "test"}`);
-          if (parsedSubscription.message.text.trim() === "test") {
+          const cleaned = parsedSubscription.message.text.normalize("NFKC").replace(/\uDB40\uDC00/g, "").trim();
+          if (cleaned === "test") {
             sendChatMessage("it works")
           }
           break;

@@ -1,11 +1,10 @@
 import WebSocket from 'ws';
 import { writeFileSync } from 'fs';
 import auth from './auth.json' with {type: 'json'};
-import { ChannelChatMessageEvent, WelcomeMessage, ReconnectMessage, NotificationMessage } from './types/twitch/index.js';
+import { ChannelChatMessageEvent, Message } from './types/twitch/index.js';
 const EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
 //const EVENTSUB_WEBSOCKET_URL = 'ws://0.0.0.0:8090/ws';
 let websocketSessionID: string;
-type AnyMessage = WelcomeMessage | ReconnectMessage | NotificationMessage;
 
 await getAuth();
 const websocketClients = [await startWebSocketClient(EVENTSUB_WEBSOCKET_URL)];
@@ -93,15 +92,15 @@ async function startWebSocketClient(EVENTSUB_WEBSOCKET_URL: string) {
   return websocketClient;
 }
 
-function parseTwitchMessage(jsonString: string): AnyMessage {
+function parseTwitchMessage(jsonString: string): Message {
   const obj = JSON.parse(jsonString);
   return {
     message_type: obj.metadata.message_type,
     ...obj
-  } as AnyMessage;
+  } as Message;
 }
 
-async function handleWebSocketMessage(data: AnyMessage) {
+async function handleWebSocketMessage(data: Message) {
   switch (data.message_type) {
     case 'session_welcome': // First message you get from the WebSocket server when connecting
       websocketSessionID = data.payload.session.id; // Register the Session ID it gives us

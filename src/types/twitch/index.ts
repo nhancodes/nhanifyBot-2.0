@@ -1,3 +1,4 @@
+export type Entity = 'bot' | 'broadcaster';
 //Session Types
 type SessionBase<Status extends string> = {
   status: Status;
@@ -7,10 +8,12 @@ type SessionBase<Status extends string> = {
   reconnect_url: string;
 };
 
-type Session = SessionBase<'reconnecting'> | SessionBase<'connected'>;
+//type Session = SessionBase<'reconnecting'> | SessionBase<'connected'>;
+
+//type Session<T extends 'connecting' | 'connected'> = SessionBase<T>;
 
 //Metadata Types
-interface MetadataBase { 
+interface MetadataBase {
   message_id: string;
   message_timestamp: string;
 }
@@ -44,7 +47,7 @@ type MessageBase<MessageType extends string, Metadata, Payload> = {
   payload: Payload;
 };
 
-export type Message = MessageBase<'session_welcome', MetadataBase, {session: SessionBase<'connected'>}> | MessageBase<'session_reconnect', MetadataBase, {session: SessionBase<'reconnecting'>}> | MessageBase<'notification', MetadataNotificationMessage, {subscription: Subscription; event: ChannelChatMessageEvent}>;
+export type Message = MessageBase<'session_welcome', MetadataBase, { session: SessionBase<'connected'> }> | MessageBase<'session_reconnect', MetadataBase, { session: SessionBase<'reconnecting'> }> | MessageBase<'notification', MetadataNotificationMessage, { subscription: Subscription; event: ChannelChatMessageEvent }>;
 
 type SubscriptionBase<SubscriptionType extends string> = {
   subscription_type: SubscriptionType;

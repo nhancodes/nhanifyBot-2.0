@@ -47,7 +47,7 @@ export async function handleWebSocketMessage(websocketClients: WebSocket[], data
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             if (websocketClients.length === 1) {
                 await registerEventSubListener('bot', 'channel.chat.message', '1', data.payload.session.id, auth.BOT_TWITCH_TOKEN);
-                await registerEventSubListener('bot', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.BOT_TWITCH_TOKEN);
+                await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.TWITCH_TOKEN);
             }
             else {
                 websocketClients.shift()?.close();

@@ -1,7 +1,7 @@
 
-import auth from './auth.json' with {type: 'json'};
-import { updateAuth } from './auth.js';
-import { Entity } from './types/twitch/index.js';
+import auth from '../../auth.json' with {type: 'json'};
+import { updateAuth } from '../../auth.js';
+import { Entity } from './types.js';
 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
     try {

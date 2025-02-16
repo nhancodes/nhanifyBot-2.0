@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
-import { ChannelChatMessageEvent, Message } from './types/twitch/index.js';
-import handleSubscriptionEvent from './handleSubscriptionEvent.js';
-import { registerEventSubListener } from './twitchEventSub.js';
-import auth from './auth.json' with {type: 'json'};
+import { ChannelChatMessageEvent, Message } from './types.js';
+import handleSubscriptionEvent from './commandsHandler.js';
+import { registerEventSubListener } from './eventSub.js';
+import auth from '../../auth.json' with {type: 'json'};
 
 export async function startTwitchWebSocketClient(EVENTSUB_WEBSOCKET_URL: string) {
     const websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];

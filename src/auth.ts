@@ -1,6 +1,6 @@
 import auth from './auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
-import { Entity } from './types/twitch/index.js';
+import { Entity } from './twitch/eventSub/types.js';
 
 export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
     try {

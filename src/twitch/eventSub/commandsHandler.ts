@@ -1,5 +1,5 @@
-import { ChannelChatMessageEvent } from './types/twitch/index.js';
-import sendChatMessage from './twitchChat.js';
+import { ChannelChatMessageEvent } from './types.js';
+import sendChatMessage from './chat.js';
 
 export default function handleSubscriptionEvent(subscriptionType: string, parsedSubscription: ChannelChatMessageEvent) {
     switch (subscriptionType) {

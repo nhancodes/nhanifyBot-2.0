@@ -1,9 +1,17 @@
-export interface ParsedCommandBase {
+//irc websocket client
+export type Message = {
+  type: string;
+  utf8Data: string;
+}
+
+//parse
+export interface ParsedCommandBase <Type extends string>{
+  type: Type;
   command: string;
   channel?: string;
 };
-export type ParsedCommand = ParsedCommandBase | null;
-export interface ParsedParams extends ParsedCommandBase {
+export type ParsedCommand = ParsedCommandBase<'generic'> | ParsedParams | null;
+export interface ParsedParams extends ParsedCommandBase<'botCommand'>{
   botCommand: string; 
   botCommandParams?: string;
 }
@@ -26,5 +34,5 @@ export type ParsedMessage = {
   tags: DictParsedTags;
   source: ParsedSource; // returns source {}
   command: ParsedCommand | null; // {command: JOIN, channel: #bar}
-  parameters: ParsedParams | null | string;
+  parameters: null | string;
 } | null;

@@ -1,14 +1,17 @@
 import WebSocket from 'ws';
-import { ChannelChatMessageEvent, Message } from './types.js';
-import handleSubscriptionEvent from './commandsHandler.js';
+import {Message, RewardRedeemEvent } from './types.js';
+import commandsHandler from './commandsHandler.js';
 import { registerEventSubListener } from './eventSub.js';
 import auth from '../../auth.json' with {type: 'json'};
 
-export async function startTwitchWebSocketClient(EVENTSUB_WEBSOCKET_URL: string) {
+export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient:WebSocket) {
     const websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
     const websocketClient = websocketClients[0];
-    console.log('Websocket client created');
-    websocketClient.addEventListener('error', console.error);
+    console.log(`${EVENTSUB_WEBSOCKET_URL} Websocket client created`);
+    websocketClient.on('error', () => {
+        console.log(`${EVENTSUB_WEBSOCKET_URL} errors:`);
+        console.error
+    });
 
     let start = 0;
     websocketClient.on('open', () => {
@@ -25,7 +28,7 @@ export async function startTwitchWebSocketClient(EVENTSUB_WEBSOCKET_URL: string)
             start = (performance.now() - start) / 1000;
             console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
             const eventObj = parseTwitchMessage(event.toString("utf8"));
-            handleWebSocketMessage(websocketClients, eventObj);
+            handleWebSocketMessage(websocketClients, eventObj, ircClient);
         } catch (e) {
             console.error(e);
         }
@@ -42,11 +45,10 @@ function parseTwitchMessage(jsonString: string): Message {
     } as Message;
 }
 
-export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message) {
+export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message, ircClient: WebSocket) {
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             if (websocketClients.length === 1) {
-                await registerEventSubListener('bot', 'channel.chat.message', '1', data.payload.session.id, auth.BOT_TWITCH_TOKEN);
                 await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.TWITCH_TOKEN);
             }
             else {
@@ -54,11 +56,11 @@ export async function handleWebSocketMessage(websocketClients: WebSocket[], data
             }
             break;
         case 'session_reconnect':
-            websocketClients.push(await startTwitchWebSocketClient(data.payload.session.reconnect_url));
+            websocketClients.push(await startTwitchEventSubWebSocketClient(data.payload.session.reconnect_url, ircClient));
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
-            const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as ChannelChatMessageEvent;
-            handleSubscriptionEvent(data.metadata.subscription_type, parsedSubscription);
+            const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
+            commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient);
             break;
     }
 }

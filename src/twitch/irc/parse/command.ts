@@ -7,7 +7,7 @@ import {ParsedCommand} from '../types.js';
 export function parseCommand(rawCommandComponent: string) : ParsedCommand {
   // takes the component and parses it to different command components
   // rawCommandComponet = JOIN #bar
-  let parsedCommand = null;
+  let parsedCommand = null as ParsedCommand;
   let commandParts = rawCommandComponent.split(" "); // [JOIN, #bar]
 
   switch (commandParts[0]) {
@@ -18,29 +18,34 @@ export function parseCommand(rawCommandComponent: string) : ParsedCommand {
     case "HOSTTARGET":
     case "PRIVMSG":
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
         channel: commandParts[1],
       }; // {command: JOIN, channel: #bar}
       break;
     case "PING":
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
       };
       break;
     case "CAP":
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
       };
       break;
     case "GLOBALUSERSTATE": // Included only if you request the /commands capability.
       // But it has no meaning without also including the /tags capability.
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
       };
       break;
     case "USERSTATE": // Included only if you request the /commands capability.
     case "ROOMSTATE": // But it has no meaning without also including the /tags capabilities.
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
         channel: commandParts[1],
       };
@@ -50,6 +55,7 @@ export function parseCommand(rawCommandComponent: string) : ParsedCommand {
         "The Twitch IRC server is about to terminate the connection for maintenance."
       );
       parsedCommand = {
+        type: "generic",
         command: commandParts[0],
       };
       break;

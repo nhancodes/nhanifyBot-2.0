@@ -7,11 +7,13 @@ export function parseParameters(rawParametersComponent: string |null, command: P
         let idx = 0
         let commandParts = rawParametersComponent.slice(idx + 1).trim(); 
         let paramsIdx = commandParts.indexOf(' ');
-        const parsedParams = {} as ParsedParams;
+        const parsedParams = {...command} as ParsedParams;
         if (-1 == paramsIdx) { // no parameters
+            parsedParams.type = 'botCommand';
             parsedParams.botCommand = commandParts.slice(0); 
         }
         else {
+            parsedParams.type = 'botCommand';
             parsedParams.botCommand = commandParts.slice(0, paramsIdx); 
             parsedParams.botCommandParams = commandParts.slice(paramsIdx).trim();
             // TODO: remove extra spaces in parameters string

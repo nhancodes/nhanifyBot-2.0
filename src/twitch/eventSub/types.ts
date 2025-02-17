@@ -47,16 +47,18 @@ type MessageBase<MessageType extends string, Metadata, Payload> = {
   payload: Payload;
 };
 
-export type Message = MessageBase<'session_welcome', MetadataBase, { session: SessionBase<'connected'> }> | MessageBase<'session_reconnect', MetadataBase, { session: SessionBase<'reconnecting'> }> | MessageBase<'notification', MetadataNotificationMessage, { subscription: Subscription; event: ChannelChatMessageEvent }>;
+export type Message = MessageBase<'session_welcome', MetadataBase, { session: SessionBase<'connected'> }> | MessageBase<'session_reconnect', MetadataBase, { session: SessionBase<'reconnecting'> }> | MessageBase<'notification', MetadataNotificationMessage, { subscription: Subscription; event: RewardRedeemEvent }>;
 
 type SubscriptionBase<SubscriptionType extends string> = {
   subscription_type: SubscriptionType;
 };
 
-export interface ChannelChatMessageEvent extends SubscriptionBase<'channel.chat.message'> {
+export interface RewardRedeemEvent extends SubscriptionBase<'channel.channel_points_custom_reward_redemption.add'> {
   broadcaster_user_login: string;
   chatter_user_login: string;
-  message: {
-    text: string;
-  };
+  reward: {
+    id: string,
+    title: string,
+    cost: number,
+  },
 }

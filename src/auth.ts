@@ -14,10 +14,10 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             let data = await response.json();
             throw new Error(`${response.status}`);
         }
-        console.log(`${response.status}: Validated token.`);
+        console.log(`${response.status}: Valid ${entity} token.`);
     } catch (e: any) {
         if (e.message === "401") {
-            console.error(`${e.message}: Invalidate token.`);
+            console.error(`${e.message}: Invalid ${entity} token.`);
             await updateAuth(entity, REFRESH_TWITCH_TOKEN);
         } else {
             console.error(e.message);
@@ -36,9 +36,9 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
             auth.REFRESH_TWITCH_TOKEN = data.refresh_token;
         }
         writeFileSync("./src/auth.json", JSON.stringify(auth));
-        console.log(`Refreshing token succeeded`);
+        console.log(`Refreshing ${entity} token succeeded`);
     } else {
-        console.log(`${data.status}: Refreshing token failed`);
+        console.log(`${data.status}: Refreshing ${entity} token failed`);
     }
 }
 

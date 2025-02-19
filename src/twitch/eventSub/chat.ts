@@ -1,5 +1,5 @@
 import auth from '../../auth.json' with {type: 'json'};
-import { updateAuth } from '../../auth.js';
+import { updateAuth } from '../auth.js';
 export default async function sendChatMessage(chatMessage: string) {
     try {
         let response = await fetch('https://api.twitch.tv/helix/chat/messages', {

@@ -1,2 +1,2 @@
-export type YTVideo = {title: string, videoId: string} | null;
-export class VideoError extends Error{};
+export type YTVideo = { title: string, id: string } | null;
+export class VideoError extends Error { };

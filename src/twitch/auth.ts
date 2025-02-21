@@ -4,58 +4,66 @@ import { Entity } from './eventSub/types.js';
 
 export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
     try {
-        let response = await fetch('https://id.twitch.tv/oauth2/validate', {
+        const response = await fetch('https://id.twitch.tv/oauth2/validate', {
             method: 'GET',
-            headers: {
-                'Authorization': 'OAuth ' + TWITCH_TOKEN
-            }
+            headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
         });
-        if (response.status != 200) {
-            let data = await response.json();
-            throw new Error(`${response.status}`);
-        }
-        console.log(`${response.status}: Valid ${entity} token.`);
-    } catch (e: any) {
-        if (e.message === "401") {
-            console.error(`${e.message}: Invalid ${entity} token.`);
+        const body = await response.json();
+        if (response.status === 200) {
+            console.log(`${response.status}: Valid ${entity} token.`);
+        } else if (response.status === 401 && body.message === "invalid access token") {
+            console.error(`${entity} : ${body}`);
             await updateAuth(entity, REFRESH_TWITCH_TOKEN);
         } else {
-            console.error(e.message);
+            console.error(`${entity} : ${body}`);
         }
+    } catch (e) {
+        console.error(e);
     }
 }
 
 export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
-    let data = await refreshAuthToken(REFRESH_TWITCH_TOKEN);
-    if ("access_token" in data) {
-        if (entity === 'bot') {
-            auth.BOT_TWITCH_TOKEN = data.access_token;
-            auth.BOT_REFRESH_TWITCH_TOKEN = data.refresh_token;
+    try {
+        let result = await refreshAuthToken(entity, REFRESH_TWITCH_TOKEN);
+        if (result.type === "data") {
+            const { access_token, refresh_token } = result.body;
+            if (entity === 'bot') {
+                auth.BOT_TWITCH_TOKEN = access_token;
+                auth.BOT_REFRESH_TWITCH_TOKEN = refresh_token;
+            } else {
+                auth.TWITCH_TOKEN = access_token;
+                auth.REFRESH_TWITCH_TOKEN = refresh_token;
+            }
+            writeFileSync("./src/auth.json", JSON.stringify(auth));
+            console.log(`Wrote ${entity} token to json`);
         } else {
-            auth.TWITCH_TOKEN = data.access_token;
-            auth.REFRESH_TWITCH_TOKEN = data.refresh_token;
+            console.error(result);
         }
-        writeFileSync("./src/auth.json", JSON.stringify(auth));
-        console.log(`Refreshing ${entity} token succeeded`);
-    } else {
-        console.log(`${data.status}: Refreshing ${entity} token failed`);
+    } catch (e) {
+        console.error(e);
     }
 }
 
-async function refreshAuthToken(REFRESH_TWITCH_TOKEN: string) {
-    let payload = {
+async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
+    const payload = {
         "grant_type": "refresh_token",
         "refresh_token": REFRESH_TWITCH_TOKEN,
         "client_id": auth.CLIENT_ID,
         "client_secret": auth.CLIENT_SECRET
     }
-    let newToken = await fetch('https://id.twitch.tv/oauth2/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams(payload).toString()
-
-    });
-    return await newToken.json();
+    try {
+        const response = await fetch('https://id.twitch.tv/oauth2/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(payload).toString()
+        });
+        const body = await response.json();
+        if (response.status === 200) {
+            console.log(`${response.status}: Refresh ${entity} token.`);
+            return { type: "data", body };
+        }
+        return { type: "error", body };
+    } catch (e) {
+        return { type: "error", body: { message: "Something went wrong when refreshing token" } };
+    }
 }

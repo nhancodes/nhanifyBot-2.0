@@ -32,6 +32,8 @@ ws.onmessage = function (event) {
         switch (data.action) {
             case "play":
                 document.getElementById('queue').textContent = queue.type;
+                songsDiv.innerHTML = '';
+                curSongCard.innerHTML = '';
                 if (queue.type === "nhanify") {
                     //show the nhanify playlist description
                     console.log('recieved nhanify:', { queue })
@@ -43,6 +45,7 @@ ws.onmessage = function (event) {
                 curSongCard.setAttribute("style", "padding:.5rem");
                 addSongCard(firstVideo, "curSongCardDisc", curSongCard);
                 document.querySelector('.curSongCard .curSongCardDisc p').textContent = firstVideo.title;
+
                 queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 //play the song
                 playVideo(firstVideo.id);

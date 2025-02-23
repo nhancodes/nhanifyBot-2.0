@@ -16,29 +16,22 @@ function onYouTubeIframeAPIReady() {
         },
         events: {
             onReady: onPlayerReady,
-            onStateChange: onPlayerStateChange,
+            onStateChange: onPlayerStateChange
         },
     });
 }
 
 function onPlayerReady(_event) {
-    //  event.target.playVideo();
     console.log("Player ready.");
-    ws.send(JSON.stringify({ type: "player", data: { state: "ready" } }));
+    ws.send(JSON.stringify({ action: "playerReady", data: null }));
 }
 
 function onPlayerStateChange(event) {
-    if (event.data == YT.PlayerState.ENDED) {
-        socket.send(JSON.stringify({ type: "player", data: { state: "ended" } }));
+    if (event.data === YT.PlayerState.ENDED) {
+        ws.send(JSON.stringify({ action: "playerFinished", queue: { type: window.queue.type } }));
     }
 }
 
-function playSong(song) {
-    player.loadVideoById(song.videoId);
+function playVideo(id) {
+    player.loadVideoById(id);
 }
-
-/*
-function playNhanifySong(song) {
-    player.loadVideoById(song.videoId);
-}
-*/

@@ -4,7 +4,10 @@ export class Queue {
     constructor(queue: ChatQueue | NhanifyQueue) {
         this.queue = queue;
     }
-    getQueue(): YTVideo[] {
+    getQueue(): NhanifyQueue | ChatQueue {
+        return this.queue;
+    }
+    getVideos(): YTVideo[] {
         return this.queue.videos;
     }
     add(video: YTVideo): void {

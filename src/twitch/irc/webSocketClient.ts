@@ -1,11 +1,11 @@
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { updateAuth } from '../auth.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { parseMessage } from './parse/message.js';
 import { commandsHandler } from './commandsHandler.js';
 import { Queue } from '../../videoAPI/queue.js';
 
-export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, chatQueue: Queue): Promise<WebSocket> {
+export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, chatQueue: Queue, webSocketServerClients: Set<WebSocket>) {
   const client = new WebSocket(IRC_WEBSOCKET_URL);
   console.log(`${IRC_WEBSOCKET_URL} Websocket client created`);
   client.on('error', () => {
@@ -37,7 +37,7 @@ export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, c
       const parsedMessage = parseMessage(message);
       console.log({ parsedMessage });
       console.log(`Chat message from IRC server: ${parsedMessage?.parameters}`);
-      commandsHandler(parsedMessage, client, chatQueue);
+      commandsHandler(parsedMessage, client, chatQueue, webSocketServerClients);
     }
   });
   return client;

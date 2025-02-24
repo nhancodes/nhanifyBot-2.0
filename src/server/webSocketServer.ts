@@ -21,5 +21,5 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
         });
 
     });
-
+    return wss.clients;
 }

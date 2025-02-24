@@ -27,29 +27,31 @@ ws.onmessage = function (event) {
                 document.getElementById('queue').textContent = queue.type;
                 songsDiv.replaceChildren();
                 curSongCard.replaceChildren();
+                const nhanifyDis = document.querySelector('#nhanifyDis');
                 if (queue.type === "nhanify") {
                     //show the nhanify playlist description
                     console.log('recieved nhanify:', { queue })
-                    const [titleEl, creatorEl] = document.getElementById('nhanifyDis')?.children ?? [];
+                    const [titleEl, creatorEl] = nhanifyDis?.children ?? [];
                     if (titleEl && creatorEl) {
                         titleEl.textContent = queue.title;
                         creatorEl.textContent = queue.creator;
                     }
                 }
                 //create current song card
-                if (firstVideo) {
-                    curSongCard.append(
-                        curSongImg,
-                        e("div", { class: "curSongCardDisc" }, e('p', {}, firstVideo.title))
-                    );
-                    curSongCard.style.padding = "0.5rem";
-                    queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
-                    //play the song
-                    playVideo(firstVideo.id);
-                } else {
+                if (!firstVideo) {
                     curSongCard.style.padding = "0rem";
-                    document.querySelector('.curSongCardDisc').remove();
+                    nhanifyDis.remove();
+                    return;
                 }
+
+                curSongCard.append(
+                    curSongImg,
+                    e("div", { class: "curSongCardDisc" }, e('p', {}, firstVideo.title))
+                );
+                curSongCard.style.padding = "0.5rem";
+                queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
+                //play the song
+                playVideo(firstVideo.id);
                 break;
             case "add":
                 // render the vid to the queue

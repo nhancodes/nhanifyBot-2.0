@@ -3,9 +3,9 @@ import { isValidURL, getVideo } from '../../videoAPI/youtube/dataAPI.js';
 import { VideoError } from '../../videoAPI/types.js';
 import { ParsedMessage } from './types.js';
 import auth from '../../auth.json' with {type: 'json'};
-import { chatQueue } from '../../videoAPI/queue.js';
+import { Queue } from '../../videoAPI/queue.js';
 
-export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket) {
+export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
@@ -20,7 +20,10 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         const video = await getVideo(url, auth.YT_API_KEY);
                         chatQueue.add(video);
                         const firstVideo = chatQueue.getFirst();
-                        if (firstVideo) client.send(`PRIVMSG ${channel} : @${chatter}, "${firstVideo.title}" added to chat queue.`);
+                        const msg = firstVideo ? `${firstVideo.title}" added to chat queue.` :
+                            `invalid youtube url.`;
+                        client.send(`PRIVMSG ${channel} : @${chatter}, ${msg} `)
+                        if (!firstVideo) return;
                     } catch (error) {
                         if (error instanceof TypeError) {
                             if (error.message === "Invalid URL") {

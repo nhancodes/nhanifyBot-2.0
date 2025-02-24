@@ -16,39 +16,40 @@ ws.onopen = function (_event) {
 
 ws.onmessage = function (event) {
     try {
-        console.log("EVENT", event);
-        const data = JSON.parse(event.data);
-        window.queue = data.queue;
-        const queue = data.queue;
-        console.log("QUEUE", queue);
-        console.log("VIDEOS", queue.videos);
+        const { action, queue } = JSON.parse(event.data);
+        window.queue = queue;
         const firstVideo = queue.videos.shift();
-        console.log("HERE____________________________", { firstVideo, queue }, window.queue);
-        const songsDiv = document.getElementsByClassName('songsDiv')[0];
-        const curSongCard = document.getElementsByClassName('curSongCard')[0];
-        const curSongImg = document.createElement('img');
-        curSongImg.setAttribute("src", "../img/play.png");
-        curSongImg.setAttribute("alt", "Playing");
-        switch (data.action) {
+        const songsDiv = document.querySelector('.songsDiv');
+        const curSongCard = document.querySelector('.curSongCard');
+        const curSongImg = e('img', { src: '../img/play.png', alt: "Playing" });
+        switch (action) {
             case "play":
                 document.getElementById('queue').textContent = queue.type;
-                songsDiv.innerHTML = '';
-                curSongCard.innerHTML = '';
+                songsDiv.replaceChildren();
+                curSongCard.replaceChildren();
                 if (queue.type === "nhanify") {
                     //show the nhanify playlist description
                     console.log('recieved nhanify:', { queue })
-                    document.getElementById('nhanifyDis').children[0].textContent = queue.title;
-                    document.getElementById('nhanifyDis').children[1].textContent = queue.creator;
+                    const [titleEl, creatorEl] = document.getElementById('nhanifyDis')?.children ?? [];
+                    if (titleEl && creatorEl) {
+                        titleEl.textContent = queue.title;
+                        creatorEl.textContent = queue.creator;
+                    }
                 }
                 //create current song card
-                curSongCard.appendChild(curSongImg);
-                curSongCard.setAttribute("style", "padding:.5rem");
-                addSongCard(firstVideo, "curSongCardDisc", curSongCard);
-                document.querySelector('.curSongCard .curSongCardDisc p').textContent = firstVideo.title;
-
-                queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
-                //play the song
-                playVideo(firstVideo.id);
+                if (firstVideo) {
+                    curSongCard.append(
+                        curSongImg,
+                        e("div", { class: "curSongCardDisc" }, e('p', {}, firstVideo.title))
+                    );
+                    curSongCard.style.padding = "0.5rem";
+                    queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
+                    //play the song
+                    playVideo(firstVideo.id);
+                } else {
+                    curSongCard.style.padding = "0rem";
+                    document.querySelector('.curSongCardDisc').remove();
+                }
                 break;
             case "add":
                 // render the vid to the queue

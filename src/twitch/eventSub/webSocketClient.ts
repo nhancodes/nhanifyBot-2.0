@@ -1,10 +1,10 @@
 import WebSocket from 'ws';
-import {Message, RewardRedeemEvent } from './types.js';
+import { Message, RewardRedeemEvent } from './types.js';
 import commandsHandler from './commandsHandler.js';
 import { registerEventSubListener } from './eventSub.js';
 import auth from '../../auth.json' with {type: 'json'};
 
-export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient:WebSocket) {
+export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket) {
     const websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
     const websocketClient = websocketClients[0];
     console.log(`${EVENTSUB_WEBSOCKET_URL} Websocket client created`);

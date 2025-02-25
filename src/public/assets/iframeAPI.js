@@ -23,12 +23,12 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(_event) {
     console.log("Player ready.");
-    ws.send(JSON.stringify({ action: "playerReady", data: null }));
+    ws.send(JSON.stringify({ action: "ready", data: null }));
 }
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
-        ws.send(JSON.stringify({ action: "playerFinished", queue: { type: window.queue.type } }));
+        ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue.type } }));
     }
 }
 

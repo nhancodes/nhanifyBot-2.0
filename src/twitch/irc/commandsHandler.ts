@@ -9,7 +9,9 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
-        switch (parsedMessage.command.botCommand) {
+        const botCommand = parsedMessage.command.botCommand;
+        console.log({ botCommand });
+        switch (botCommand) {
             case "songrequest":
                 const url = parsedMessage.command.botCommandParams;
                 if (url) {
@@ -21,7 +23,6 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         chatQueue.add(video);
                         const lastVideo = chatQueue.getLast();
                         const videos = chatQueue.getVideos();
-                        console.log("__________________", JSON.stringify(videos));
                         let msg;
                         if (lastVideo) {
                             msg = `${lastVideo.title}" added to chat queue.`;
@@ -64,6 +65,11 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 } else {
                     client.send(`PRIVMSG ${channel} : @${chatter}, no url provided.`);
                 }
+            case "resume":
+            case "pause":
+                webSocketServerClients.forEach(client => {
+                    client.send(JSON.stringify({ action: botCommand, queue: null }));
+                });
         }
     }
 }

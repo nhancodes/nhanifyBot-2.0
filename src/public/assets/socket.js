@@ -67,26 +67,29 @@ ws.onmessage = function (event) {
                 playVideo(firstVideo.id);
                 break;
             case "add":
-                console.log("IN ADD", window.queue);
                 if (!window.queue) {
-                    ws.send(JSON.stringify({ action: "playerFinished", queue: { type: window.queue } }));
+                    ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue } }));
                     return;
                 }
-                console.log("IN ADD", queue);
                 songsDiv.replaceChildren();
                 queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 // start the cooldown
                 break;
             case "pause":
+
                 if (window.queue) {
                     player.pauseVideo();
                     ws.send(JSON.stringify({ action: "pause", queue: { type: window.queue.type } }));
+                    const curSongImg = document.querySelector('.curSongCard img');
+                    curSongImg.setAttribute('src', '/assets/img/pause.png');
                 }
                 break;
             case "resume":
                 if (window.queue) {
                     player.playVideo();
                     ws.send(JSON.stringify({ action: "resume", queue: { type: window.queue.type } }));
+                    const curSongImg = document.querySelector('.curSongCard img');
+                    curSongImg.setAttribute('src', '/assets/img/play.png');
                 }
                 break;
         }

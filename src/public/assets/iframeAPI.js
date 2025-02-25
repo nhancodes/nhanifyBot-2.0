@@ -31,7 +31,3 @@ function onPlayerStateChange(event) {
         ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue.type } }));
     }
 }
-
-function playVideo(id) {
-    player.loadVideoById(id);
-}

@@ -64,14 +64,16 @@ ws.onmessage = function (event) {
                 curSongCard.style.padding = "0.5rem";
                 queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 //play the song
-                playVideo(firstVideo.id);
+                player.loadVideoById(firstVideo.id);
                 break;
             case "add":
+                console.log("IN ADD");
                 if (!window.queue) {
                     ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue } }));
                     return;
                 }
                 songsDiv.replaceChildren();
+
                 queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 // start the cooldown
                 break;

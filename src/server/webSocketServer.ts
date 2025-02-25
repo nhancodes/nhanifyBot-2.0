@@ -17,10 +17,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                         if (data.queue.type) {
                             data.queue.type === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove();
                         }
-                        console.log(JSON.stringify(chatQueue.getVideos()));
-                        console.log(JSON.stringify(nhanifyQueue.getVideos()));
                     case "ready":
-                        let queue;
                         if (!chatQueue.isEmpty()) {
                             ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
                         } else if (!nhanifyQueue.isEmpty()) {
@@ -30,11 +27,8 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                         }
                         break;
                     case "pause":
-                        console.log("IN PAUSE ");
-                        console.log({ ircClient });
                     case "resume":
                         //included chatter in properties to send over to the client from the irc to include as port of irc message
-                        console.log("IN RESUME ");
                         ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Player ${data.action}d.`);
                 }
             }

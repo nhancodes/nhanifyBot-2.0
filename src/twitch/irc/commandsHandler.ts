@@ -26,9 +26,11 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         let msg;
                         if (lastVideo) {
                             msg = `${lastVideo.title}" added to chat queue.`;
-                            webSocketServerClients.forEach(client => {
+                            webSocketServerClients[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                            /*webSocketServerClients.forEach(client => {
                                 client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
                             });
+                            */
                         } else {
                             msg = `invalid youtube url.`;
                         }

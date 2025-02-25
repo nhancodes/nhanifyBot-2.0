@@ -23,4 +23,8 @@ export class Queue {
         if (this.isEmpty()) return null;
         return this.queue.videos[0];
     }
+    getLast(): YTVideo | null {
+        if (this.isEmpty()) return null;
+        return this.queue.videos[this.queue.videos.length - 1];
+    }
 }

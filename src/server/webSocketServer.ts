@@ -12,14 +12,25 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
             console.log(`message recieved from client:  ${JSON.stringify(data)}`);
             switch (data.action) {
                 case "playerFinished":
-                    data.queue.type === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove();
+                    if (data.queue.type) {
+                        data.queue.type === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove();
+                    }
+                    console.log(JSON.stringify(chatQueue.getVideos()));
+                    console.log(JSON.stringify(nhanifyQueue.getVideos()));
                 case "playerReady":
-                    const queue = !chatQueue.isEmpty() ? chatQueue.getQueue() : nhanifyQueue.getQueue();
-                    ws.send(JSON.stringify({ action: "play", queue }));
+                    let queue;
+                    if (!chatQueue.isEmpty()) {
+                        ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
+                    } else if (!nhanifyQueue.isEmpty()) {
+                        ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                    } else {
+                        ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
+                    }
+                    console.log("QUEUE PASSED TO CLIENT", { queue });
                     break;
+
             }
         });
-
     });
     return wss.clients;
 }

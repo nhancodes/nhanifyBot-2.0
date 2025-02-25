@@ -10,7 +10,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
         switch (parsedMessage.command.botCommand) {
-            case "sr":
+            case "songrequest":
                 const url = parsedMessage.command.botCommandParams;
                 if (url) {
                     try {
@@ -19,11 +19,15 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         }
                         const video = await getVideo(url, auth.YT_API_KEY);
                         chatQueue.add(video);
-                        const firstVideo = chatQueue.getFirst();
+                        const lastVideo = chatQueue.getLast();
+                        const videos = chatQueue.getVideos();
+                        console.log("__________________", JSON.stringify(videos));
                         let msg;
-                        if (firstVideo) {
-                            msg = `${firstVideo.title}" added to chat queue.`;
-                            webSocketServerClients.forEach(client => client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() })));
+                        if (lastVideo) {
+                            msg = `${lastVideo.title}" added to chat queue.`;
+                            webSocketServerClients.forEach(client => {
+                                client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                            });
                         } else {
                             msg = `invalid youtube url.`;
                         }

@@ -17,17 +17,28 @@ ws.onopen = function (_event) {
 ws.onmessage = function (event) {
     try {
         const { action, queue } = JSON.parse(event.data);
-        window.queue = queue;
-        const firstVideo = queue.videos.shift();
         const songsDiv = document.querySelector('.songsDiv');
-        const curSongCard = document.querySelector('.curSongCard');
-        const curSongImg = e('img', { src: '../img/play.png', alt: "Playing" });
         switch (action) {
+            case "emptyQueues": {
+                window.queue = queue;
+                document.getElementById('queue').textContent = "Chat Queue";
+                //clear the playlist current card and description
+                const curSongCard = document.querySelector('.curSongCard');
+                curSongCard.replaceChildren();
+                curSongCard.style.padding = "0rem";
+                document.querySelector('#nhanifyDis').replaceChildren();
+                break;
+            }
             case "play":
+                window.queue = queue;
+                const curSongCard = document.querySelector('.curSongCard');
+                const curSongImg = e('img', { src: '/assets/img/play.png', alt: "Playing" });
+                //const curSongImg = document.createElement("span");
+                const firstVideo = queue.videos.shift();
+                const nhanifyDis = document.querySelector('#nhanifyDis');
                 document.getElementById('queue').textContent = queue.type;
                 songsDiv.replaceChildren();
                 curSongCard.replaceChildren();
-                const nhanifyDis = document.querySelector('#nhanifyDis');
                 if (queue.type === "nhanify") {
                     //show the nhanify playlist description
                     console.log('recieved nhanify:', { queue })
@@ -36,6 +47,8 @@ ws.onmessage = function (event) {
                         titleEl.textContent = queue.title;
                         creatorEl.textContent = queue.creator;
                     }
+                } else {
+                    nhanifyDis.replaceChildren();
                 }
                 //create current song card
                 if (!firstVideo) {
@@ -54,14 +67,27 @@ ws.onmessage = function (event) {
                 playVideo(firstVideo.id);
                 break;
             case "add":
-                // render the vid to the queue
+                console.log("IN ADD", window.queue);
+                if (!window.queue) {
+                    ws.send(JSON.stringify({ action: "playerFinished", queue: { type: window.queue } }));
+                    return;
+                }
+                console.log("IN ADD", queue);
+                songsDiv.replaceChildren();
+                queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 // start the cooldown
                 break;
             case "pause":
-                // pause the vid
+                if (window.queue) {
+                    player.pauseVideo();
+                    ws.send(JSON.stringify({ action: "pause", queue: { type: window.queue.type } }));
+                }
                 break;
             case "resume":
-                // resume the vid
+                if (window.queue) {
+                    player.playVideo();
+                    ws.send(JSON.stringify({ action: "resume", queue: { type: window.queue.type } }));
+                }
                 break;
         }
     } catch (e) {

@@ -67,14 +67,14 @@ ws.onmessage = function (event) {
                 player.loadVideoById(firstVideo.id);
                 break;
             case "add":
-                console.log("IN ADD");
                 if (!window.queue) {
                     ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue } }));
                     return;
                 }
                 songsDiv.replaceChildren();
 
-                queue.videos.forEach(song => addSongCard(song, "songCard", songsDiv));
+                const videos = window.queue.type === 'chat' ? queue.videos.slice(1) : queue.videos;
+                videos.forEach(song => addSongCard(song, "songCard", songsDiv));
                 // start the cooldown
                 break;
             case "pause":

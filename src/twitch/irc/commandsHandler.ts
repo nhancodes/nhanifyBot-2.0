@@ -22,11 +22,11 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         const video = await getVideo(url, auth.YT_API_KEY);
                         chatQueue.add(video);
                         const lastVideo = chatQueue.getLast();
-                        const videos = chatQueue.getVideos();
+                        //const videos = chatQueue.getVideos();
                         let msg;
-                        if (lastVideo) {
+                        if (video && lastVideo && lastVideo.id === video.id) {
                             msg = `${lastVideo.title}" added to chat queue.`;
-                            webSocketServerClients[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                            Array.from(webSocketServerClients)[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
                             /*webSocketServerClients.forEach(client => {
                                 client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
                             });

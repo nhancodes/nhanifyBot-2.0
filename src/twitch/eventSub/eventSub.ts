@@ -17,7 +17,7 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
                 version: version,
                 condition: {
                     broadcaster_user_id: auth.BROADCASTER_ID,
-                    user_id: auth.BOT_ID       
+                    user_id: auth.BOT_ID
                     //moderator_user_id: auth.BROADCASTER_ID
                 },
                 transport: {
@@ -31,7 +31,6 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
             throw new Error(`${response.status}: Failed to subscribe`);
         }
         let data = await response.json();
-        console.log(data.data);
         console.log(`Subscribed to ${data.data[0].type} [${data.data[0].id}]`);
     } catch (e: any) {
         if (e.message === "401: Failed to subscribe") {

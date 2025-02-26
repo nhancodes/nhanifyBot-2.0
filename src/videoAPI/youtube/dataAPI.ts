@@ -48,7 +48,6 @@ async function getVidInfoByVidId(videoId: string, YT_API_KEY: string): Promise<Y
   const response = await fetch(url, headers);
   const result = await response.json();
   if (!result.items[0]) return null;
-  console.log("RESULT ITEM", result.items[0]);
   const regionRestriction = result.items[0].contentDetails.regionRestriction;
   const ageRestriction = result.items[0].contentDetails.contentRating.ytRating;
   const liveStream = result.items[0].liveStreamingDetails;

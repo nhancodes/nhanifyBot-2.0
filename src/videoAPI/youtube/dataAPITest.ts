@@ -23,18 +23,22 @@ const urlIds: [string, string][] = [
     ["https://www.youtube.com/watch?v=XShaIZs7J7M ; drop nhan", "XShaIZs7J7M ; drop nhan"],
     ["https://www.youtube.coM/watch?v=L3wKzyIN1yk", "L3wKzyIN1yk"],
     ["https://www.youtube.com/watch?v=TWQp1rLWN9A&list=RDGMEMWO-g6DgCWEqKlDtKbJA1Gw&index=30&ab_channel=FrancisMercier-Topic", "TWQp1rLWN9A"]
-]
-console.log("Is an invalid url");
-invalidUrls.forEach(([url, expected]) => console.log(`${url} ${isValidURL(url) === expected ? 'invalid PASSED' : 'valid FAILED'}`));
+];
 
-console.log("Is a valid url");
-validUrls.forEach(([url, expected]) => console.log(`${url} ${isValidURL(url) === expected ? 'valid PASSED' : 'invalid FAILED'}`));
+function assert(url: string, expected: string | boolean, cb: (arg: string) => boolean | string) {
+    const actual = cb(url)
+    const assert = actual === expected ? `✔PASSED: ${url}\n expected: ${expected} actual: ${actual}` : `✗FAILED: ${url}\n expected: ${expected} actual: ${actual}`
+    console.log(assert);
+}
 
-console.log("Parse url for video id");
-urlIds.forEach(([url, expected]) => {
-    const actual = parseURL(url)
-    console.log(`${url} ${actual === expected ? 'valid PASSED' : 'invalid FAILED: got ' + actual}`)
-});
+console.log("\nInvalid urls");
+invalidUrls.forEach(([url, expected]) => assert(url, expected, isValidURL));
+
+console.log("\nValid urls");
+validUrls.forEach(([url, expected]) => assert(url, expected, isValidURL));
+
+console.log("\nParse video id from valid urls");
+urlIds.forEach(([url, expected]) => assert(url, expected, parseURL));
 
 const restrictedVideoIds: [string, { restriction?: string }][] = [
     ["FrULPuxyhWE", { restriction: "liveStream" }],
@@ -48,5 +52,9 @@ const restrictedVideoIds: [string, { restriction?: string }][] = [
     ["2MStAY8YaJT", {}] // video do not exist 
 ];
 
-console.log("Restricted videos");
-restrictedVideoIds.forEach(async ([id, restriction]) => console.log(`${id} ${JSON.stringify(await getVideoById(id, auth.YT_API_KEY)) === JSON.stringify(restriction)}`));
+console.log("\nRestricted videos");
+restrictedVideoIds.forEach(async ([id, expected]) => {
+    const actual = JSON.stringify(await getVideoById(id, auth.YT_API_KEY));
+    const assert = actual === JSON.stringify(expected) ? `✔PASSED: ${id}\n expected: ${expected} actual: ${actual}` : `✗FAILED: ${id}\n expected: ${expected} actual: ${actual}`
+    console.log(assert);
+});

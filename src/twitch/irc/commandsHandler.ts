@@ -1,6 +1,5 @@
-import { WebSocket, WebSocketServer } from 'ws';
-import { isValidURL, getVideo } from '../../videoAPI/youtube/dataAPI.js';
-import { VideoError } from '../../videoAPI/types.js';
+import { WebSocket } from 'ws';
+import { isValidURL, getVideoById, parseURL } from '../../videoAPI/youtube/dataAPI.js';
 import { ParsedMessage } from './types.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
@@ -12,63 +11,43 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
         const botCommand = parsedMessage.command.botCommand;
         console.log({ botCommand });
         switch (botCommand) {
-            case "songrequest":
-                const url = parsedMessage.command.botCommandParams;
-                if (url) {
-                    try {
-                        if (!isValidURL(url)) {
-                            client.send(`PRIVMSG ${channel} : @${chatter}, invalid Youtube video url.`);
-                        }
-                        const video = await getVideo(url, auth.YT_API_KEY);
-                        chatQueue.add(video);
-                        const lastVideo = chatQueue.getLast();
-                        //const videos = chatQueue.getVideos();
-                        let msg;
-                        if (video && lastVideo && lastVideo.id === video.id) {
-                            msg = `${lastVideo.title}" added to chat queue.`;
-                            Array.from(webSocketServerClients)[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
-                            /*webSocketServerClients.forEach(client => {
-                                client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
-                            });
-                            */
-                        } else {
-                            msg = `invalid youtube url.`;
-                        }
-                        client.send(`PRIVMSG ${channel} : @${chatter}, ${msg} `)
-                        return;
-                    } catch (error) {
-                        if (error instanceof TypeError) {
-                            if (error.message === "Invalid URL") {
-                                client.send(`PRIVMSG ${channel} : @${chatter}, invalid url.`);
-                            }
-                        } else if (error instanceof VideoError) {
-                            switch (error.message) {
-                                case "liveStreamRestriction":
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, live streams are restricted.`);
-                                    break;
-                                case "ageRestriction":
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, video is age restricted.`);
-                                    break;
-                                case "regionRestriction":
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, video is age restricted in the US.`);
-                                    break;
-                                case "notEmbeddable":
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, video can't be played on embedded player.`);
-                                    break;
-                                case "durationRestriction":
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, video duration can't be over 10 minutes.`);
-                                    break;
-                                default:
-                                    client.send(`PRIVMSG ${channel} : @${chatter}, sorry, something went wrong with the request.`);
-                                    console.error(error);
-                            }
-                        }
+            case "bot2sr":
+                const url = parsedMessage.command.botCommandParams ? parsedMessage.command.botCommandParams : "";
+                try {
+                    if (!isValidURL(url)) {
+                        return client.send(`PRIVMSG ${channel} : @${chatter}, invalid Youtube video url.`);
                     }
-                } else {
-                    client.send(`PRIVMSG ${channel} : @${chatter}, no url provided.`);
+                    const result = await getVideoById(parseURL(url), auth.YT_API_KEY);
+                    console.log({ url, result });
+                    if (result.id) {
+                        chatQueue.add(result);
+                        Array.from(webSocketServerClients)[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                        return client.send(`PRIVMSG ${channel} : @${chatter}, ${chatQueue.getLast()?.title} added to chat queue.`)
+                    }
+                    switch (result.restriction) {
+                        case "liveStream":
+                            client.send(`PRIVMSG ${channel} : @${chatter}, live streams are restricted.`);
+                            break;
+                        case "age":
+                            client.send(`PRIVMSG ${channel} : @${chatter}, video is age restricted.`);
+                            break;
+                        case "region":
+                            client.send(`PRIVMSG ${channel} : @${chatter}, video is restricted in the US.`);
+                            break;
+                        case "notEmbeddable":
+                            client.send(`PRIVMSG ${channel} : @${chatter}, video can't be played on embedded player.`);
+                            break;
+                        case "duration":
+                            client.send(`PRIVMSG ${channel} : @${chatter}, video duration can't be over 10 minutes.`);
+                            break;
+                        default:
+                            client.send(`PRIVMSG ${channel} : @${chatter}, video does not exist. `);
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
-            case "resume":
-            case "pause":
+            case "bot2resume":
+            case "bot2pause":
                 webSocketServerClients.forEach(client => {
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });

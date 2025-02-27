@@ -1,9 +1,13 @@
-export type YTVideo = { title: string; id: string } | null;
+export type YTVideo = {
+    title?: string;
+    id?: string;
+    restriction?: string;
+};
+
 type QueueType<Type extends string> = {
     type: Type;
     title?: string;
     creator?: string;
-
     length?: number;
     videos: YTVideo[]
 }

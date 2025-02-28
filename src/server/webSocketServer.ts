@@ -19,10 +19,13 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                         }
                     case "ready":
                         if (!chatQueue.isEmpty()) {
+                            Queue.setPlayingOn("chat");
                             ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
                         } else if (!nhanifyQueue.isEmpty()) {
+                            Queue.setPlayingOn("nhanify");
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                         } else {
+                            Queue.setPlayingOn(null);
                             ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
                         }
                         break;
@@ -30,6 +33,12 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                     case "resume":
                         //included chatter in properties to send over to the client from the irc to include as port of irc message
                         ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Player ${data.action}d.`);
+                        break;
+                    case "skipSong":
+                        ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Skipped song.`);
+                        break;
+                    case "skipPlaylist":
+                        ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Skipped playlist.`);
                 }
             }
         });

@@ -11,6 +11,7 @@ const IRC_WEBSOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443';
 const chatQueue = new Queue({ type: "chat", videos: [] } as ChatQueue);
 const videos: YTVideo[] = [
     { title: "Baby One More Time", id: "kAJz7c97Cyo" },
+    { title: "A Bag of Weed", id: "jK8fAUlqbow" },
     { title: "A Bag of Weed", id: "jK8fAUlqbow" }
 ];
 
@@ -19,7 +20,7 @@ const nhanifyQueue = new Queue({ type: "nhanify", title: "Something Random", len
 const { webSocketServerClients, setIrcClient } = startWebSocketServer(chatQueue, nhanifyQueue);
 await authenticateTwitchToken('bot', auth.BOT_TWITCH_TOKEN, auth.BOT_REFRESH_TWITCH_TOKEN);
 await authenticateTwitchToken('broadcaster', auth.TWITCH_TOKEN, auth.REFRESH_TWITCH_TOKEN);
-const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients);
+const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue);
 setIrcClient(ircClient);
 await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient);
 

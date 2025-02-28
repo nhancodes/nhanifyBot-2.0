@@ -27,13 +27,13 @@ ws.onmessage = function (event) {
                 curSongCard.replaceChildren();
                 curSongCard.style.padding = "0rem";
                 document.querySelector('#nhanifyDis').replaceChildren();
+                player.stopVideo();
                 break;
             }
             case "play":
                 window.queue = queue;
                 const curSongCard = document.querySelector('.curSongCard');
                 const curSongImg = e('img', { src: '/assets/img/play.png', alt: "Playing" });
-                //const curSongImg = document.createElement("span");
                 const firstVideo = queue.videos.shift();
                 const nhanifyDis = document.querySelector('#nhanifyDis');
                 document.getElementById('queue').textContent = queue.type;

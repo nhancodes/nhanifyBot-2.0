@@ -48,7 +48,7 @@ const restrictedVideoIds: [string, { restriction?: string }][] = [
     ["j0lN0w5HVT8", { restriction: "age" }],
     ["2MStAY8YaJk", { restriction: "region" }],// This video is not available is in this cause is a region restriction
     ["N9hazmsUxrM", { restriction: "notEmbeddable" }],
-    ["mg8_7SfwdfY", {}], // video has been removed 
+    ["mg8_7SfwdfY", {}], // video has been removed same as video not existing
     ["2MStAY8YaJT", {}] // video do not exist 
 ];
 

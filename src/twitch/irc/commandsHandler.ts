@@ -4,7 +4,7 @@ import { ParsedMessage } from './types.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
 
-export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>) {
+export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
@@ -51,6 +51,30 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 webSocketServerClients.forEach(client => {
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });
+                break;
+            case "bot2skipSong":
+                console.log("CURRENTLY PLAYING", Queue.getPlayingOn());
+                console.log({ nhanifyQueue });
+                if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, all queues are empty.`);
+                Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
+                if (!chatQueue.isEmpty()) {
+                    Queue.setPlayingOn("chat");
+                    webSocketServerClients.forEach(client => {
+                        client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
+                    });
+                } else if (!nhanifyQueue.isEmpty()) {
+                    Queue.setPlayingOn("nhanify");
+                    webSocketServerClients.forEach(client => {
+                        client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                    });
+                } else {
+                    Queue.setPlayingOn(null);
+                    webSocketServerClients.forEach(client => {
+                        client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
+                    });
+                }
+                break;
+            case "bot2skipPlaylist":
         }
     }
 }

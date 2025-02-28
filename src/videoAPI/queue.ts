@@ -1,8 +1,17 @@
 import { YTVideo, ChatQueue, NhanifyQueue } from './types.js';
+type QueueType = "nhanify" | "chat" | null;
 export class Queue {
-    public queue: ChatQueue | NhanifyQueue;
+    private queue: ChatQueue | NhanifyQueue;
+    private static playingOn: QueueType;
     constructor(queue: ChatQueue | NhanifyQueue) {
         this.queue = queue;
+        this.queue.length = this.queue.videos.length;
+    }
+    static setPlayingOn(queueName: QueueType): void {
+        Queue.playingOn = queueName;
+    }
+    static getPlayingOn(): QueueType {
+        return Queue.playingOn;
     }
     getQueue(): NhanifyQueue | ChatQueue {
         return this.queue;

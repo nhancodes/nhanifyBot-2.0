@@ -67,9 +67,10 @@ ws.onmessage = function (event) {
                 player.loadVideoById(firstVideo.id);
                 break;
             case "add":
-                if (!window.queue) {
-                    ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue } }));
-                    return;
+                console.log("ADD", { queue });
+                console.log("ADD", window.queue);
+                if (!window.queue) { //null
+                    return ws.send(JSON.stringify({ action: "finished" }));
                 }
                 songsDiv.replaceChildren();
 
@@ -81,7 +82,7 @@ ws.onmessage = function (event) {
 
                 if (window.queue) {
                     player.pauseVideo();
-                    ws.send(JSON.stringify({ action: "pause", queue: { type: window.queue.type } }));
+                    ws.send(JSON.stringify({ action: "pause" }));
                     const curSongImg = document.querySelector('.curSongCard img');
                     curSongImg.setAttribute('src', '/assets/img/pause.png');
                 }
@@ -89,7 +90,7 @@ ws.onmessage = function (event) {
             case "bot2resume":
                 if (window.queue) {
                     player.playVideo();
-                    ws.send(JSON.stringify({ action: "resume", queue: { type: window.queue.type } }));
+                    ws.send(JSON.stringify({ action: "resume" }));
                     const curSongImg = document.querySelector('.curSongCard img');
                     curSongImg.setAttribute('src', '/assets/img/play.png');
                 }

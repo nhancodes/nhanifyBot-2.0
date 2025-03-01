@@ -21,7 +21,10 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     console.log({ url, result });
                     if (result.id) {
                         chatQueue.add(result);
-                        Array.from(webSocketServerClients)[0].send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                        webSocketServerClients.forEach(client => {
+                            client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
+                        });
+                        console.log("CURRENT QUEUE", JSON.stringify(chatQueue.getVideos()));
                         return client.send(`PRIVMSG ${channel} : @${chatter}, ${chatQueue.getLast()?.title} added to chat queue.`)
                     }
                     switch (result.restriction) {

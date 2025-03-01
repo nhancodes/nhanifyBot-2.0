@@ -14,9 +14,9 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
             if (ircClient) {
                 switch (data.action) {
                     case "finished":
-                        if (data.queue.type) {
-                            data.queue.type === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove();
-                        }
+                        // if playing on is null we do not remove
+                        if (Queue.getPlayingOn() === 'nhanify') nhanifyQueue.remove();
+                        if (Queue.getPlayingOn() === 'chat') chatQueue.remove();
                     case "ready":
                         if (!chatQueue.isEmpty()) {
                             Queue.setPlayingOn("chat");
@@ -31,7 +31,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                         break;
                     case "pause":
                     case "resume":
-                        //included chatter in properties to send over to the client from the irc to include as port of irc message
+                        //in the future include chatter in properties to send over to the client from the irc to include as port of irc message
                         ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Player ${data.action}d.`);
                         break;
                     case "skipSong":

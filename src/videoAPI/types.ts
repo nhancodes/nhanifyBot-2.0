@@ -19,7 +19,7 @@ export type Nhanify  = {
     nextPlaylist(): void;
     getPlaylist(): NhanifyPlaylist ;
     getSongs(): Promise<YTVideo[]>; // Assuming `songs` is an array of any type
-}
+} | null;
 export type ChatQueue = QueueType<'chat'>;
 export type NhanifyQueue = QueueType<'nhanify'>;
 

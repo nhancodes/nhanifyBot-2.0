@@ -26,7 +26,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                             Queue.setPlayingOn("nhanify");
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                         } else { // Queue is empty
-
+                            if (nhanify) {
                             Queue.setPlayingOn("nhanify");
                             // increment by playlistIndex mod playlistLength 
                             nhanify.nextPlaylist();
@@ -36,10 +36,11 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                             // set the nhanify playlist queue to the new songs
                             nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos:nhanifySongs } as NhanifyQueue);
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
-
-                            //configure: no nhanify playlists 
-                            //Queue.setPlayingOn(null);
-                            //ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
+                            } else {
+                                //configure: no nhanify playlists 
+                                Queue.setPlayingOn(null);
+                                ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
+                            }
                         }
                         break;
                     case "pause":

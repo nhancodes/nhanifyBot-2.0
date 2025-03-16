@@ -41,7 +41,6 @@ const response = await fetch("http://localhost:3002/api/playlists/public", {
 });
 const result = await response.json();
 //fitlter out playlist with 0 songs 
-console.log("UNFILTERED", result.playlists);
 const filteredPlaylists = result.playlists.filter((playlist: { songCount: number; }) => playlist.songCount > 0);
 const playlists = filteredPlaylists.map((playlist: { id: number; title: string; creator: { username: string; }; }) => {
     return { 
@@ -50,7 +49,6 @@ const playlists = filteredPlaylists.map((playlist: { id: number; title: string; 
         creator: playlist.creator.username
     }
 });
-console.log("FILTERED", playlists);
 return shuffleItems(playlists) as NhanifyPlaylist[];
 }
 

@@ -10,7 +10,6 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
         const botCommand = parsedMessage.command.botCommand;
-        console.log({ botCommand });
         switch (botCommand) {
             case "bot2sr":
                 const url = parsedMessage.command.botCommandParams ? parsedMessage.command.botCommandParams : "";
@@ -19,13 +18,11 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         return client.send(`PRIVMSG ${channel} : @${chatter}, invalid Youtube video url.`);
                     }
                     const result = await getVideoById(parseURL(url), auth.YT_API_KEY);
-                    console.log({ url, result });
                     if (result.videoId) {
                         chatQueue.add(result);
                         webSocketServerClients.forEach(client => {
                             client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
                         });
-                        console.log("CURRENT QUEUE", JSON.stringify(chatQueue.getVideos()));
                         return client.send(`PRIVMSG ${channel} : @${chatter}, ${chatQueue.getLast()?.title} added to chat queue.`)
                     }
                     switch (result.restriction) {
@@ -51,14 +48,20 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     console.log(error);
                 }
             case "bot2resume":
+                if (Queue.getIsPlaying()) break;
+                Queue.toggleIsPlaying();
+                webSocketServerClients.forEach(client => {
+                    client.send(JSON.stringify({ action: botCommand, queue: null }));
+                });
+                break;
             case "bot2pause":
+                if (!Queue.getIsPlaying()) break;
+                Queue.toggleIsPlaying();
                 webSocketServerClients.forEach(client => {
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });
                 break;
             case "bot2skipSong":
-                console.log("CURRENTLY PLAYING", Queue.getPlayingOn());
-                console.log({ nhanifyQueue });
                 if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, all queues are empty.`);
                 Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
                 if (!chatQueue.isEmpty()) {
@@ -72,28 +75,32 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                     });
                 } else {
-
-                    // increment by playlistIndex mod playlistLength 
-                    console.log("IN COMMAND HANDLER", {nhanify});
-                    Queue.setPlayingOn("nhanify");
-                    nhanify.nextPlaylist();
-                    const nhanifyPlaylist = await nhanify.getPlaylist();
-                    // make api call to get all the songs on the current playlist
-                    const nhanifySongs:YTVideo[] = await nhanify.getSongs();
-                    // set the nhanify playlist queue to the new songs
-                    nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title,creator: nhanifyPlaylist.creator, videos:nhanifySongs });
-                    webSocketServerClients.forEach(client => {
-                        client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
-                    });
-                    //configure to chat only
-                    /*Queue.setPlayingOn(null);
-                    webSocketServerClients.forEach(client => {
-                        client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
-                    });
-                    */
+                    if (nhanify) {
+                        // increment by playlistIndex mod playlistLength 
+                        Queue.setPlayingOn("nhanify");
+                        nhanify.nextPlaylist();
+                        const nhanifyPlaylist = await nhanify.getPlaylist();
+                        // make api call to get all the songs on the current playlist
+                        const nhanifySongs:YTVideo[] = await nhanify.getSongs();
+                        // set the nhanify playlist queue to the new songs
+                        nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title,creator: nhanifyPlaylist.creator, videos:nhanifySongs });
+                        webSocketServerClients.forEach(client => {
+                            client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                        });
+                    } else {
+                        //configure to chat only
+                        Queue.setPlayingOn(null);
+                        webSocketServerClients.forEach(client => {
+                            client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
+                        });
+                    }
                 }
                 break;
-            case "bot2skipPlaylist":
+            case "song":
+                const video = Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getFirst() : chatQueue.getFirst();
+                const msg = Queue.getIsPlaying() ? `${video?.title} -> https://www.youtube.com/watch?v=${video?.videoId}` : `No song is currently playing.`;
+                client.send(`PRIVMSG ${channel} : @${chatter}, ${msg}`);
+                break;
         }
     }
 }

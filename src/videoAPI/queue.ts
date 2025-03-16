@@ -3,9 +3,16 @@ type QueueType = "nhanify" | "chat" | null;
 export class Queue {
     private queue: ChatQueue | NhanifyQueue;
     private static playingOn: QueueType;
+    private static isPlaying: boolean = true;
     constructor(queue: ChatQueue | NhanifyQueue) {
         this.queue = queue;
         this.queue.length = this.queue.videos.length;
+    }
+    static getIsPlaying():boolean {
+        return Queue.isPlaying;
+    }
+    static toggleIsPlaying():void {
+        Queue.isPlaying = !Queue.isPlaying;
     }
     static setPlayingOn(queueName: QueueType): void {
         Queue.playingOn = queueName;

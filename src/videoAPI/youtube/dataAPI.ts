@@ -58,7 +58,7 @@ export async function getVideoById(videoId: string, YT_API_KEY: string): Promise
 
     return {
       title: result.items[0].snippet.title,
-      id: result.items[0].id,
+      videoId: result.items[0].id,
     };
   } catch (error) {
     console.error(error);

@@ -13,6 +13,10 @@ export class Queue {
     static getPlayingOn(): QueueType {
         return Queue.playingOn;
     }
+    nextQueue(queue: NhanifyQueue) {
+        this.queue = queue;
+        this.queue.length = queue.videos.length;
+    }
     getQueue(): NhanifyQueue | ChatQueue {
         return this.queue;
     }

@@ -2,13 +2,14 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Queue } from '../videoAPI/queue.js';
 import { webServer } from './webServer.js';
 import auth from '../auth.json' with {type: 'json'};
-export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
+import { Nhanify, NhanifyQueue, YTVideo } from '../videoAPI/types.js';
+export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhanify: Nhanify) {
     const wss = new WebSocketServer({ server: webServer });
     console.log('WebSocketServer created.');
     let ircClient: WebSocket | null;
     wss.on('connection', function connection(ws) {
         ws.on('error', console.error);
-        ws.on('message', function message(message) {
+        ws.on('message', async function message(message) {
             const data = JSON.parse(message.toString());
             console.log(`message recieved from client:  ${JSON.stringify(data)}`);
             if (ircClient) {
@@ -24,9 +25,21 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue) {
                         } else if (!nhanifyQueue.isEmpty()) {
                             Queue.setPlayingOn("nhanify");
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
-                        } else {
-                            Queue.setPlayingOn(null);
-                            ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
+                        } else { // Queue is empty
+
+                            Queue.setPlayingOn("nhanify");
+                            // increment by playlistIndex mod playlistLength 
+                            nhanify.nextPlaylist();
+                            const nhanifyPlaylist = await nhanify.getPlaylist();
+                            // make api call to get all the songs on the current playlist
+                            const nhanifySongs:YTVideo[] = await nhanify.getSongs();
+                            // set the nhanify playlist queue to the new songs
+                            nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos:nhanifySongs } as NhanifyQueue);
+                            ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+
+                            //configure: no nhanify playlists 
+                            //Queue.setPlayingOn(null);
+                            //ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
                         }
                         break;
                     case "pause":

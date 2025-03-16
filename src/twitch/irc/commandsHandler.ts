@@ -3,8 +3,9 @@ import { isValidURL, getVideoById, parseURL } from '../../videoAPI/youtube/dataA
 import { ParsedMessage } from './types.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
+import { Nhanify, YTVideo } from '../../videoAPI/types.js';
 
-export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue) {
+export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify:Nhanify) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
@@ -19,7 +20,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     }
                     const result = await getVideoById(parseURL(url), auth.YT_API_KEY);
                     console.log({ url, result });
-                    if (result.id) {
+                    if (result.videoId) {
                         chatQueue.add(result);
                         webSocketServerClients.forEach(client => {
                             client.send(JSON.stringify({ action: "add", queue: chatQueue.getQueue() }));
@@ -71,10 +72,25 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                     });
                 } else {
-                    Queue.setPlayingOn(null);
+
+                    // increment by playlistIndex mod playlistLength 
+                    console.log("IN COMMAND HANDLER", {nhanify});
+                    Queue.setPlayingOn("nhanify");
+                    nhanify.nextPlaylist();
+                    const nhanifyPlaylist = await nhanify.getPlaylist();
+                    // make api call to get all the songs on the current playlist
+                    const nhanifySongs:YTVideo[] = await nhanify.getSongs();
+                    // set the nhanify playlist queue to the new songs
+                    nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title,creator: nhanifyPlaylist.creator, videos:nhanifySongs });
+                    webSocketServerClients.forEach(client => {
+                        client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                    });
+                    //configure to chat only
+                    /*Queue.setPlayingOn(null);
                     webSocketServerClients.forEach(client => {
                         client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
                     });
+                    */
                 }
                 break;
             case "bot2skipPlaylist":

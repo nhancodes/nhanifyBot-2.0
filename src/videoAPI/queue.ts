@@ -48,3 +48,5 @@ export class Queue {
         return this.queue.videos[this.queue.videos.length - 1];
     }
 }
+
+export const savedVideos: {[key:string]: string []} = {};

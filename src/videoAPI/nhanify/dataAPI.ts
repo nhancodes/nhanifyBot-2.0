@@ -2,10 +2,6 @@
 //update add song to invalidate videos that can't be play on the player
 //when loading the playlist check all songs to see if they still exist if not render the song grey and have the player skip the song
 
-//run when application first runs
-//set playlistIndex to 0
-//make api call to get all public playlists and randomize
-
 import auth from '../../auth.json' with {type: 'json'};
 import { NhanifyPlaylist, NhanifyQueue, YTVideo } from '../types.js';
 export const nhanify = {
@@ -28,7 +24,7 @@ export const nhanify = {
         });
         const playlist = await response.json();
         return shuffleItems(playlist.songs) as YTVideo[];
-    }
+    },
 }
 
 async function getPublicPlaylists(){

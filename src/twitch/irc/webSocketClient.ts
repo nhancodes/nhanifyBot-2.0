@@ -38,7 +38,6 @@ export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, c
     } else {
       const parsedMessage = parseMessage(message);
       console.log(`Chat message from IRC server: ${parsedMessage?.parameters}`);
-      console.log("IN IRC", nhanify);
       commandsHandler(parsedMessage, client, chatQueue, webSocketServerClients, nhanifyQueue, nhanify);
     }
   });

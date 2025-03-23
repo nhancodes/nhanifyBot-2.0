@@ -4,14 +4,15 @@ import { ParsedMessage } from './types.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue, savedVideos } from '../../videoAPI/queue.js';
 import { Nhanify, YTVideo } from '../../videoAPI/types.js';
+import { Rewards } from '../api/reward.js';
 
-export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify:Nhanify) {
+export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify:Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
         const botCommand = parsedMessage.command.botCommand;
         switch (botCommand) {
-            case "bot2sr":
+            case "sr":
                 const url = parsedMessage.command.botCommandParams ? parsedMessage.command.botCommandParams : "";
                 try {
                     if (!isValidURL(url)) {
@@ -47,21 +48,22 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 } catch (error) {
                     console.log(error);
                 }
-            case "bot2resume":
+            case "resume":
                 if (Queue.getIsPlaying()) break;
                 Queue.toggleIsPlaying();
                 webSocketServerClients.forEach(client => {
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });
                 break;
-            case "bot2pause":
+            case "pause":
                 if (!Queue.getIsPlaying()) break;
                 Queue.toggleIsPlaying();
+                // call the twitch api to pause redeemsgtgt
                 webSocketServerClients.forEach(client => {
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });
                 break;
-            case "bot2skipSong":
+            case "skipSong":
                 if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, all queues are empty.`);
                 Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
                 if (!chatQueue.isEmpty()) {
@@ -69,11 +71,40 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     webSocketServerClients.forEach(client => {
                         client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
                     });
+
+                    const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                    if (!skipPlaylistReward?.getIsPaused()) {
+                        const updatedReward = await skipPlaylistReward?.setIsPaused(true);
+                        if (updatedReward!.type === "success") {
+                            console.log(` Skip Playlist is ${skipPlaylistReward?.getIsPaused() ? "paused" : "resumed"}`);
+                        }
+                    }
+                    const skipSongReward = rewards.getReward("NhanifyBot: Skip Song");
+                    if (skipSongReward?.getIsPaused()) {
+                        const updatedReward = await skipSongReward?.setIsPaused(false);
+                        if (updatedReward!.type === "success") {
+                            console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
+                        }
+                    }
                 } else if (!nhanifyQueue.isEmpty()) {
                     Queue.setPlayingOn("nhanify");
                     webSocketServerClients.forEach(client => {
                         client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                     });
+                    const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                    if (skipPlaylistReward?.getIsPaused()) {
+                        const updatedReward = await skipPlaylistReward?.setIsPaused(false);
+                        if (updatedReward!.type === "success") {
+                            console.log(` Skip Playlist is ${skipPlaylistReward?.getIsPaused() ? "paused" : "resumed"}`);
+                        }
+                    }
+                    const skipSongReward = rewards.getReward("NhanifyBot: Skip Song");
+                    if (skipSongReward?.getIsPaused()) {
+                        const updatedReward = await skipSongReward?.setIsPaused(false);
+                        if (updatedReward!.type === "success") {
+                            console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
+                        }
+                    }
                 } else {
                     if (nhanify) {
                         // increment by playlistIndex mod playlistLength 
@@ -87,12 +118,41 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         webSocketServerClients.forEach(client => {
                             client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
                         });
+
+                        const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                        if (skipPlaylistReward?.getIsPaused()) {
+                            const updatedReward = await skipPlaylistReward?.setIsPaused(false);
+                            if (updatedReward!.type === "success") {
+                                console.log(` Skip Playlist is ${skipPlaylistReward?.getIsPaused() ? "paused" : "resumed"}`);
+                            }
+                        }
+                        const skipSongReward = rewards.getReward("NhanifyBot: Skip Song");
+                        if (skipSongReward?.getIsPaused()) {
+                            const updatedReward = await skipSongReward?.setIsPaused(false);
+                            if (updatedReward!.type === "success") {
+                                console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
+                            }
+                        }
                     } else {
                         //configure to chat only
                         Queue.setPlayingOn(null);
                         webSocketServerClients.forEach(client => {
                             client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
                         });
+                        const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                        if (!skipPlaylistReward?.getIsPaused()) {
+                            const updatedReward = await skipPlaylistReward?.setIsPaused(true);
+                            if (updatedReward!.type === "success") {
+                                console.log(` Skip Playlist is ${skipPlaylistReward?.getIsPaused() ? "paused" : "resumed"}`);
+                            }
+                        }
+                        const skipSongReward = rewards.getReward("NhanifyBot: Skip Song");
+                        if (!skipSongReward?.getIsPaused()) {
+                            const updatedReward = await skipSongReward?.setIsPaused(true);
+                            if (updatedReward!.type === "success") {
+                                console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
+                            }
+                        }
                     }
                 }
                 break;

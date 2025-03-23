@@ -8,11 +8,12 @@ export default function commandsHandler(subscriptionType: string, parsedSubscrip
             console.log({ subscriptionType, parsedSubscription });
             const title = parsedSubscription.reward.title;
             switch (title) {
-                case "Skip Song":
-                    ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : ${title} was redeemed.`);
+                case "NhanifyBot: Skip Song":
+                    //ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : !skipSong`);
+                    ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} :!skipSong`);
                     break;
-                case "Skip Playlist":
-                    ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : ${title} was redeemed.`);
+                case "NhanifyBot: Skip Playlist":
+                    ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} :!skipPlaylist`);
                     break;
             }
             break;

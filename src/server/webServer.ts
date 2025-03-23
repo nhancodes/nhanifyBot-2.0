@@ -4,7 +4,6 @@ import path from 'path';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
-console.log({ PUBLIC_DIR, INDEX_FILE });
 const PORT = 3099;
 
 // Create an HTTP server

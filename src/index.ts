@@ -6,11 +6,15 @@ import { startTwitchIRCWebSocketClient } from './twitch/irc/webSocketClient.js';
 import { startWebSocketServer } from './server/webSocketServer.js';
 import { Queue } from './videoAPI/queue.js';
 import { ChatQueue, Nhanify, NhanifyQueue, YTVideo } from './videoAPI/types.js';
+import {getNhanifyRewards, rewards} from './twitch/api/reward.js'; 
 const EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
 const IRC_WEBSOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443';
 //const EVENTSUB_WEBSOCKET_URL = 'ws://0.0.0.0:8090/ws';
 const chatQueue = new Queue({ type: "chat", videos: [] } as ChatQueue);
 type Config = {nhanify: Nhanify, queue: NhanifyQueue};
+await authenticateTwitchToken('bot', auth.BOT_TWITCH_TOKEN, auth.BOT_REFRESH_TWITCH_TOKEN);
+await authenticateTwitchToken('broadcaster', auth.TWITCH_TOKEN, auth.REFRESH_TWITCH_TOKEN);
+await getNhanifyRewards();
 async function getNhanifyVideos():Promise<Config>{
     if (config.NHANIFY) {
         try {
@@ -28,10 +32,7 @@ async function getNhanifyVideos():Promise<Config>{
 }
 const {nhanify, queue}: Config = await getNhanifyVideos();
 const nhanifyQueue = new Queue(queue);
-
-const { webSocketServerClients, setIrcClient } = startWebSocketServer(chatQueue, nhanifyQueue, nhanify);
-await authenticateTwitchToken('bot', auth.BOT_TWITCH_TOKEN, auth.BOT_REFRESH_TWITCH_TOKEN);
-await authenticateTwitchToken('broadcaster', auth.TWITCH_TOKEN, auth.REFRESH_TWITCH_TOKEN);
-const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue, nhanify);
+const { webSocketServerClients, setIrcClient } = startWebSocketServer(chatQueue, nhanifyQueue, nhanify, rewards);
+const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue, nhanify,rewards);
 setIrcClient(ircClient);
 await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient);

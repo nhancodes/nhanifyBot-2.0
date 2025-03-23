@@ -5,9 +5,9 @@ import { parseMessage } from './parse/message.js';
 import { commandsHandler } from './commandsHandler.js';
 import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify} from '../../videoAPI/types.js';
+import { Rewards } from '../api/reward.js';
 
-export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify:Nhanify ) {
-  console.log("IN IRC AHHHH", nhanify);
+export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
   const client = new WebSocket(IRC_WEBSOCKET_URL);
   console.log(`${IRC_WEBSOCKET_URL} Websocket client created`);
   client.on('error', () => {
@@ -38,7 +38,7 @@ export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, c
     } else {
       const parsedMessage = parseMessage(message);
       console.log(`Chat message from IRC server: ${parsedMessage?.parameters}`);
-      commandsHandler(parsedMessage, client, chatQueue, webSocketServerClients, nhanifyQueue, nhanify);
+      commandsHandler(parsedMessage, client, chatQueue, webSocketServerClients, nhanifyQueue, nhanify, rewards);
     }
   });
   return client;

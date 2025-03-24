@@ -24,7 +24,8 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                             Queue.setPlayingOn("chat");
                             ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
                             //find the skiplaylist reward and set pause to true 
-                            const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                            rewards.setRewardsIsPause("chat");
+                            /*const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
                             if (!skipPlaylistReward?.getIsPaused()) {
                                 const updatedReward = await skipPlaylistReward?.setIsPaused(true);
                                 if (updatedReward!.type === "success") {
@@ -38,11 +39,13 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                                     console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
                                 }
                             }
+                            */
                         } else if (!nhanifyQueue.isEmpty()) {
                             Queue.setPlayingOn("nhanify");
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                            rewards.setRewardsIsPause("nhanify");
                             //find the skiplaylist reward and set pause to false
-                            const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                            /*const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
                             if (skipPlaylistReward?.getIsPaused()) {
                                 const updatedReward = await skipPlaylistReward?.setIsPaused(false);
                                 if (updatedReward!.type === "success") {
@@ -56,6 +59,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                                     console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
                                 }
                             }
+                            */
                         } else { // Queue is empty
                             if (nhanify) {
                             Queue.setPlayingOn("nhanify");
@@ -67,8 +71,9 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                             // set the nhanify playlist queue to the new songs
                             nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos:nhanifySongs } as NhanifyQueue);
                             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+                            rewards.setRewardsIsPause("nhanify");
                             //find the skiplaylist reward and set pause to true 
-                            const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                            /*const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
                             if (skipPlaylistReward?.getIsPaused()) {
                                 const updatedReward = await skipPlaylistReward?.setIsPaused(false);
                                 if (updatedReward!.type === "success") {
@@ -82,12 +87,14 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                                     console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
                                 }
                             }
+                            */
                             } else {
                                 //configure: no nhanify playlists 
                                 Queue.setPlayingOn(null);
                                 ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
+                                rewards.setRewardsIsPause("null");
                                 // find skipPlaylist and skipSong and set pause to false 
-                                const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
+                                /*const skipPlaylistReward = rewards.getReward("NhanifyBot: Skip Playlist");
                                 if (!skipPlaylistReward?.getIsPaused()) {
                                     const updatedReward = await skipPlaylistReward?.setIsPaused(true);
                                     if (updatedReward!.type === "success") {
@@ -101,6 +108,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                                         console.log(` Skip Song is ${skipSongReward?.getIsPaused() ? "paused" : "resumed"}`);
                                     }
                                 }
+                                */
                             }
                         }
                         break;

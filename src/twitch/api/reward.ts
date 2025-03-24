@@ -51,11 +51,51 @@ class Rewards {
         this.rewards.push(reward);
     }
 
-    async setRewardsIsPause(state:boolean, ...titles: string[]) {
-        const rewards =  titles.map(title => this.getReward(title));
+    async setRewardsIsPause(queueState: string) {
+        const  rewardState: Record<string, Record<string, boolean>> = {
+            "chat": {
+                "NhanifyBot: Skip Playlist": true,
+                "NhanifyBot: Skip Song": false,
+                "NhanifyBot: Request Song": true,
+                "NhanifyBot: Save Song": true
+            }, 
+            "nhanify": {
+                "NhanifyBot: Skip Playlist": true,
+                "NhanifyBot: Skip Song": true,
+                "NhanifyBot: Request Song": true,
+                "NhanifyBot: Save Song": true
+            },
+            "null": {
+                "NhanifyBot: Skip Playlist": false,
+                "NhanifyBot: Skip Song": false,
+                "NhanifyBot: Request Song": false,
+                "NhanifyBot: Save Song": false
+            }
+        }
+        
+        const states = rewardState[queueState];
+        const updatePromises = [];
+        //iterate through the object 
+            for (let rewardName in states) {
+                // get the reward 
+                const reward = rewards.getReward(rewardName);
+                if (reward) {
+                    const isPaused = states[rewardName];
+                    // if the current reward pause state is not the same as the value at reward
+                    if(reward.getIsPaused() === isPaused) {
+                        // call the api and change state to opposite of valuel at reward 
+                        updatePromises.push(reward.setIsPaused(!isPaused));
+                    }
+                }
+            }
+        // get all result from promises
+        const updatedRewards = await Promise.all(updatePromises);
+        updatedRewards.forEach(reward => console.log(`${reward.type}: ${reward.result.title} is ${reward.result.is_paused ? "paused" : "resumed"}`));
+        /*const rewards =  titles.map(title => this.getReward(title));
         const promises = rewards.map(reward => reward!.setIsPaused(state));
         const updatedRewards = await Promise.all(promises);
         updatedRewards.forEach(reward => console.log(`${reward.type}: ${reward.result.title} is ${reward.result.is_paused ? "paused" : "resumed"}`));
+        */
     }
     
     getJsonConfig() { const REWARDS = this.getRewards().map((reward:RewardType) => {
@@ -188,5 +228,6 @@ async function getNhanifyRewards() {
     });
     if (errors.length > 0) writeFileSync("./src/twitch/api/rewards.json", JSON.stringify(rewards.getJsonConfig()));
 }
+
 
 export { getNhanifyRewards, rewards, Rewards};

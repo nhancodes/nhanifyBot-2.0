@@ -3,10 +3,13 @@
 //when loading the playlist check all songs to see if they still exist if not render the song grey and have the player skip the song
 
 import auth from '../../auth.json' with {type: 'json'};
-import { NhanifyPlaylist, NhanifyQueue, YTVideo } from '../types.js';
-export const nhanify = {
+import { Nhanify, NhanifyPlaylist, NhanifyQueue, YTVideo } from '../types.js';
+export const nhanify: Nhanify = {
     playlistIndex: 0,
-    playlists: await getPublicPlaylists(),
+    playlists: [],
+    async setPublicPlaylists() {
+        this.playlists = await getPublicPlaylists();
+    },
     nextPlaylist() {
         this.playlistIndex += 1;
     },

@@ -2,12 +2,11 @@ import { WebSocket } from 'ws';
 import { rewards } from './twitch/api/reward.js';
 import { Queue } from './videoAPI/queue.js';
 import { nhanify } from './videoAPI/nhanify/dataAPI.js';
+import config from '../config.json' with {type: 'json'};
 import { NhanifyQueue, YTVideo } from './videoAPI/types.js';
 import auth from './auth.json' with {type: 'json'};
-import { ircCommand } from './twitch/irc/ircCommand.js';
 
 export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue, chatter: string) {
-
     if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${auth.TWITCH_ACCOUNT} : @${chatter}, all queues are empty.`);
     Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
     if (!chatQueue.isEmpty()) {
@@ -24,19 +23,18 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
 
         rewards.setRewardsIsPause("nhanify");
     } else {
-        if (nhanify) {
+        if (config.NHANIFY) {
             // increment by playlistIndex mod playlistLength 
             Queue.setPlayingOn("nhanify");
-            nhanify.nextPlaylist();
-            const nhanifyPlaylist = await nhanify.getPlaylist();
+            nhanify!.nextPlaylist();
+            const nhanifyPlaylist = await nhanify!.getPlaylist();
             // make api call to get all the songs on the current playlist
-            const nhanifySongs: YTVideo[] = await nhanify.getSongs();
+            const nhanifySongs: YTVideo[] = await nhanify!.getSongs();
             // set the nhanify playlist queue to the new songs
             nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos: nhanifySongs });
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             });
-
             rewards.setRewardsIsPause("nhanify");
         } else {
             //configure to chat only
@@ -77,13 +75,13 @@ export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue:
         ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
         rewards.setRewardsIsPause("nhanify");
     } else { // Queue is empty
-        if (nhanify) {
+        if (config.NHANIFY) {
             Queue.setPlayingOn("nhanify");
             // increment by playlistIndex mod playlistLength 
-            nhanify.nextPlaylist();
-            const nhanifyPlaylist = await nhanify.getPlaylist();
+            nhanify!.nextPlaylist();
+            const nhanifyPlaylist = await nhanify!.getPlaylist();
             // make api call to get all the songs on the current playlist
-            const nhanifySongs: YTVideo[] = await nhanify.getSongs();
+            const nhanifySongs: YTVideo[] = await nhanify!.getSongs();
             // set the nhanify playlist queue to the new songs
             nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos: nhanifySongs } as NhanifyQueue);
             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));

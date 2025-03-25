@@ -1,7 +1,10 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import rewardsConfig from './rewards.json' with {type: 'json'};
-const { REWARDS } = rewardsConfig;
+type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
+type State = { chat: boolean, nhanify: boolean, null: boolean };
+const REWARDS = rewardsConfig.REWARDS as RewardJson[];
+
 interface RewardBase {
     id: string;
     title: string;
@@ -37,17 +40,57 @@ interface RewardType extends RewardBase {
     }
 }
 
+
+function transformRewardsState() {
+    const queueStates = ["chat", "nhanify", null];
+    // create an empty object called result
+    // iterate through the each string queue state 
+    //create an object (key = current string queue state)
+    // iterate through each object in rewards 
+    // acces the isPausedStates and grap the value of string queuw state
+    // acces the title 
+    // create the key (title) set the value to value of string queue state 
+    // create the key (current string queue state) and set value to object on result
+
+    const result = {};
+    queueStates.forEach(queueState => {
+        const state = {};
+        REWARDS.forEach(reward => {
+            //state[reward.title] = reward.isPausedStates[queueState];
+        });
+    })
+
+    /*{
+    "chat": {
+        "NhanifyBot: Skip Playlist": true, //is_paused
+        "NhanifyBot: Skip Song": false,
+    },
+    "nhanify": {
+        "NhanifyBot: Skip Playlist": false,
+        "NhanifyBot: Skip Song": false,
+    },
+    "null": {
+        "NhanifyBot: Skip Playlist": true,
+        "NhanifyBot: Skip Song": true,
+    }
+}
+    */
+}
+
 class Rewards {
     constructor(private rewards: Reward[]) { }
+
     getRewards(): RewardType[] {
         return this.rewards.map(reward => {
             console.log("IN GETREWARDS", reward);
             return reward.getReward()
         })
     }
+
     getReward(title: string) {
         return this.rewards.find(reward => reward.getTitle() === title);
     }
+
     addReward(reward: Reward) {
         this.rewards.push(reward);
     }
@@ -209,12 +252,19 @@ async function createReward(reward: ConfigReward) {
                 'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ title, cost })
+            body: JSON.stringify({
+                title,
+                cost,
+                background_color: "#19376d",
+                is_global_cooldown_enabled: true,
+                global_cooldown_seconds: 30
+            })
         }
     )
     const result = await response.json();
     return response.ok ? { type: "success", result: result.data[0] } : { type: "error", result };
 }
+
 type ConfigReward = { id: string; title: string; cost: number }
 
 async function getNhanifyRewards() {

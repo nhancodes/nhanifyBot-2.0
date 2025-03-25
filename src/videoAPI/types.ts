@@ -4,7 +4,7 @@ export type YTVideo = {
     restriction?: string;
 };
 
-export type NhanifyPlaylist = {id: number; title: string, creator: string};
+export type NhanifyPlaylist = { id: number; title: string, creator: string };
 type QueueType<Type extends string> = {
     type: Type;
     title?: string;
@@ -13,11 +13,12 @@ type QueueType<Type extends string> = {
     videos: YTVideo[]
 }
 
-export type Nhanify  = {
+export type Nhanify = {
     playlistIndex: number;
-    playlists: NhanifyPlaylist []; // Assume `getPublicPlaylists()` resolves to this
+    playlists: NhanifyPlaylist[]; // Assume `getPublicPlaylists()` resolves to this
+    setPublicPlaylists(): Promise<void>;
     nextPlaylist(): void;
-    getPlaylist(): NhanifyPlaylist ;
+    getPlaylist(): NhanifyPlaylist;
     getSongs(): Promise<YTVideo[]>; // Assuming `songs` is an array of any type
 } | null;
 export type ChatQueue = QueueType<'chat'>;

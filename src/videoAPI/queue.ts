@@ -1,4 +1,4 @@
-import { YTVideo, ChatQueue, NhanifyQueue } from './types.js';
+import type { YTVideo, ChatQueue, NhanifyQueue } from './types.js';
 type QueueType = "nhanify" | "chat" | null;
 export class Queue {
     private queue: ChatQueue | NhanifyQueue;
@@ -8,10 +8,10 @@ export class Queue {
         this.queue = queue;
         this.queue.length = this.queue.videos.length;
     }
-    static getIsPlaying():boolean {
+    static getIsPlaying(): boolean {
         return Queue.isPlaying;
     }
-    static toggleIsPlaying():void {
+    static toggleIsPlaying(): void {
         Queue.isPlaying = !Queue.isPlaying;
     }
     static setPlayingOn(queueName: QueueType): void {
@@ -49,4 +49,6 @@ export class Queue {
     }
 }
 
-export const savedVideos: {[key:string]: string []} = {};
+export const savedVideos: { [key: string]: string[] } = {};
+
+export { ChatQueue };

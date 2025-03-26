@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Queue } from '../videoAPI/queue.js';
 import { webServer } from './webServer.js';
 import auth from '../auth.json' with {type: 'json'};
-import { Nhanify, NhanifyQueue, YTVideo } from '../videoAPI/types.js';
+import { Nhanify } from '../videoAPI/types.js';
 import { Rewards } from '../twitch/api/reward.js';
 import { playerReady } from '../commands.js';
 export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
@@ -21,11 +21,10 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                         if (Queue.getPlayingOn() === 'nhanify') nhanifyQueue.remove();
                         if (Queue.getPlayingOn() === 'chat') chatQueue.remove();
                     case "ready":
-                        playerReady(ws, chatQueue, nhanifyQueue);
+                        playerReady(ws, chatQueue, nhanifyQueue,nhanify);
                         break;
                     case "pause":
                     case "resume":
-                        //in the future include chatter in properties to send over to the client from the irc to include as port of irc message
                         ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Player ${data.action}d.`);
                         break;
                     case "skipSong":

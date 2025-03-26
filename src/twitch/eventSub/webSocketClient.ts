@@ -4,8 +4,9 @@ import commandsHandler from './commandsHandler.js';
 import { registerEventSubListener } from './eventSub.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
+import { Nhanify } from '../../videoAPI/types.js';
 
-export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue) {
+export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
     const websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
     const websocketClient = websocketClients[0];
     console.log(`${EVENTSUB_WEBSOCKET_URL} Websocket client created`);
@@ -29,7 +30,7 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
             start = (performance.now() - start) / 1000;
             console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
             const eventObj = parseTwitchMessage(event.toString("utf8"));
-            handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue);
+            handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue,nhanify);
         } catch (e) {
             console.error(e);
         }
@@ -46,7 +47,7 @@ function parseTwitchMessage(jsonString: string): Message {
     } as Message;
 }
 
-export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue) {
+export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             if (websocketClients.length === 1) {
@@ -57,11 +58,11 @@ export async function handleWebSocketMessage(websocketClients: WebSocket[], data
             }
             break;
         case 'session_reconnect':
-            websocketClients.push(await startTwitchEventSubWebSocketClient(data.payload.session.reconnect_url, ircClient, webSocketServerClients, nhanifyQueue, chatQueue));
+            websocketClients.push(await startTwitchEventSubWebSocketClient(data.payload.session.reconnect_url, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify));
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
             const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
-            commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue);
+            commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
             break;
     }
 }

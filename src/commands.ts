@@ -2,11 +2,10 @@ import { WebSocket } from 'ws';
 import { rewards } from './twitch/api/reward.js';
 import { Queue } from './videoAPI/queue.js';
 import { nhanify } from './videoAPI/nhanify/dataAPI.js';
-import config from '../config.json' with {type: 'json'};
-import { NhanifyQueue, YTVideo } from './videoAPI/types.js';
+import { Nhanify, NhanifyQueue, YTVideo } from './videoAPI/types.js';
 import auth from './auth.json' with {type: 'json'};
 
-export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue, chatter: string) {
+export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue, chatter: string, nhanify: Nhanify) {
     if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${auth.TWITCH_ACCOUNT} : @${chatter}, all queues are empty.`);
     Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
     if (!chatQueue.isEmpty()) {
@@ -23,7 +22,7 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
 
         rewards.setRewardsIsPause("nhanify");
     } else {
-        if (config.NHANIFY) {
+        if (nhanify) {
             // increment by playlistIndex mod playlistLength 
             Queue.setPlayingOn("nhanify");
             nhanify!.nextPlaylist();
@@ -64,7 +63,7 @@ export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>,
     }
 }
 
-export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue: Queue) {
+export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue: Queue, nhanify: Nhanify) {
     if (!chatQueue.isEmpty()) {
         Queue.setPlayingOn("chat");
         ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
@@ -75,7 +74,7 @@ export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue:
         ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
         rewards.setRewardsIsPause("nhanify");
     } else { // Queue is empty
-        if (config.NHANIFY) {
+        if (nhanify) {
             Queue.setPlayingOn("nhanify");
             // increment by playlistIndex mod playlistLength 
             nhanify!.nextPlaylist();

@@ -2,9 +2,23 @@ import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import rewardsConfig from './rewards.json' with {type: 'json'};
 type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
-type State = { chat: boolean, nhanify: boolean, null: boolean };
+type State = { [key: string]: boolean };
 const REWARDS = rewardsConfig.REWARDS as RewardJson[];
 
+function transformRewardsState(): {[key: string]: State} {
+    const queueStates = ["chat", "nhanify", "null"];
+    const result: {[key: string]: State} = {};
+    queueStates.forEach(queueState => {
+        const state: State = {};
+        REWARDS.forEach(reward => {
+            state[reward.title] = reward.isPausedStates[queueState];
+        });
+        result[queueState] = state;
+    })
+    return result;
+}
+const rewardsStates:  {[key: string]: State} = transformRewardsState();
+console.log("HERE IS REWARDSTATES", rewardsStates);
 interface RewardBase {
     id: string;
     title: string;
@@ -41,41 +55,6 @@ interface RewardType extends RewardBase {
 }
 
 
-function transformRewardsState() {
-    const queueStates = ["chat", "nhanify", null];
-    // create an empty object called result
-    // iterate through the each string queue state 
-    //create an object (key = current string queue state)
-    // iterate through each object in rewards 
-    // acces the isPausedStates and grap the value of string queuw state
-    // acces the title 
-    // create the key (title) set the value to value of string queue state 
-    // create the key (current string queue state) and set value to object on result
-
-    const result = {};
-    queueStates.forEach(queueState => {
-        const state = {};
-        REWARDS.forEach(reward => {
-            //state[reward.title] = reward.isPausedStates[queueState];
-        });
-    })
-
-    /*{
-    "chat": {
-        "NhanifyBot: Skip Playlist": true, //is_paused
-        "NhanifyBot: Skip Song": false,
-    },
-    "nhanify": {
-        "NhanifyBot: Skip Playlist": false,
-        "NhanifyBot: Skip Song": false,
-    },
-    "null": {
-        "NhanifyBot: Skip Playlist": true,
-        "NhanifyBot: Skip Song": true,
-    }
-}
-    */
-}
 
 class Rewards {
     constructor(private rewards: Reward[]) { }
@@ -96,7 +75,7 @@ class Rewards {
     }
 
     async setRewardsIsPause(queueState: string) {
-        const rewardState: Record<string, Record<string, boolean>> = {
+        /*const rewardsStates: Record<string, Record<string, boolean>> = {
             "chat": {
                 "NhanifyBot: Skip Playlist": true, //is_paused
                 "NhanifyBot: Skip Song": false,
@@ -116,8 +95,8 @@ class Rewards {
                 "NhanifyBot: Save Song": true
             }
         }
-
-        const states = rewardState[queueState];
+        */
+        const states = rewardsStates[queueState];
         const updatePromises = [];
         //iterate through the object 
         for (let rewardName in states) {

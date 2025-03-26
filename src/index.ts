@@ -22,7 +22,8 @@ async function getNhanifyVideos(): Promise<Config> {
         console.log("GET NHANIFY VIDEOS", config.NHANIFY);
         try {
             const { nhanify } = await import('./videoAPI/nhanify/dataAPI.js');
-            nhanify!.setPublicPlaylists();
+            console.log("NHANIFFFFFFFFFFFFFYYYYYYYYYYY", nhanify);
+            await nhanify!.setPublicPlaylists();
             const { creator, title } = nhanify!.getPlaylist();//configure: nhanify
             const videos: YTVideo[] = await nhanify!.getSongs();//configure: nhanify
             return { nhanify, queue: { type: "nhanify", title, creator, videos } } as Config;
@@ -41,4 +42,4 @@ const nhanifyQueue = new Queue(queue);
 const { webSocketServerClients, setIrcClient } = startWebSocketServer(chatQueue, nhanifyQueue, nhanify, rewards);
 const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue, nhanify, rewards);
 setIrcClient(ircClient);
-await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue);
+await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);

@@ -66,7 +66,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 });
                 break;
             case "skipSong":
-                playerSkipSong(webSocketServerClients, client, nhanifyQueue, chatQueue, chatter!);
+                playerSkipSong(webSocketServerClients, client, nhanifyQueue, chatQueue, chatter!, nhanify);
                 break;
             case "song":
                 const video = Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getFirst() : chatQueue.getFirst();

@@ -3,7 +3,8 @@ import { RewardRedeemEvent } from './types.js';
 import { playerSkipSong, playerSkipPlaylist } from '../../commands.js';
 import { ircCommand } from '../irc/ircCommand.js';
 import { Queue } from '../../videoAPI/queue.js';
-export default function commandsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue) {
+import { Nhanify } from '../../videoAPI/types.js';
+export default function commandsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
     switch (subscriptionType) {
         case "channel.channel_points_custom_reward_redemption.add":
             console.log({ subscriptionType, parsedSubscription });
@@ -12,7 +13,7 @@ export default function commandsHandler(subscriptionType: string, parsedSubscrip
             switch (title) {
                 case "NhanifyBot: Skip Song":
                     //ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : !skipSong`);
-                    playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!);
+                    playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
                     break;
                 case "NhanifyBot: Skip Playlist":
                     playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!);

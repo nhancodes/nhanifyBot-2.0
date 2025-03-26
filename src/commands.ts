@@ -46,17 +46,35 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
     }
 }
 
-export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatter: string) {
+export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatter: string, chatQueue: Queue) {
     if (nhanify && Queue.getPlayingOn() === "nhanify") {
-        Queue.setPlayingOn("nhanify");
+        //Queue.setPlayingOn("nhanify");
         nhanify.nextPlaylist();
         const nhanifyPlaylist = await nhanify.getPlaylist();
         // make api call to get all the songs on the current playlist
         const nhanifySongs: YTVideo[] = await nhanify.getSongs();
         // set the nhanify playlist queue to the new songs
         nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos: nhanifySongs });
+        //check if chat of nhanify queue to populated
+    
+        if (!chatQueue.isEmpty()) {
+            Queue.setPlayingOn("chat");
+            webSocketServerClients.forEach(client => {
+                client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
+            });
+            rewards.setRewardsIsPause("chat");
+        nhanify.nextPlaylist();
+        } else if (!nhanifyQueue.isEmpty()) {
+            Queue.setPlayingOn("nhanify");
+            webSocketServerClients.forEach(client => {
+                client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+            });
+    
+            rewards.setRewardsIsPause("nhanify");
+        } 
+        const queue = Queue.getPlayingOn() === "chat" ? chatQueue.getQueue() : Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getQueue() : null;
         webSocketServerClients.forEach(client => {
-            client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
+            client.send(JSON.stringify({ action: "play", queue }));
         });
     } else {
         client.send(`PRIVMSG ${auth.TWITCH_ACCOUNT} : @${chatter}, No playlist to skip.`);

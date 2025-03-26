@@ -16,7 +16,7 @@ export default function commandsHandler(subscriptionType: string, parsedSubscrip
                     playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
                     break;
                 case "NhanifyBot: Skip Playlist":
-                    playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!);
+                    playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
                     break;
             }
             break;

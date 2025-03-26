@@ -74,7 +74,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 client.send(`PRIVMSG ${channel} : @${chatter}, ${msg}`);
                 break;
             case "skipPlaylist":
-                playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!);
+                playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!, chatQueue);
                 break;
             case "save": {
                 if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) return client.send(`PRIVMSG ${channel} : @${chatter}, No song playing to save.`);

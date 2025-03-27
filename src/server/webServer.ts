@@ -1,10 +1,10 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 import fs from 'fs';
 import path from 'path';
+import auth from '../auth.json' with {type: 'json'};
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
-const PORT = 3099;
 
 // Create an HTTP server
 export const webServer = http.createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -56,6 +56,6 @@ export const webServer = http.createServer((req: IncomingMessage, res: ServerRes
 });
 
 // Start the server and listen on the specified port
-webServer.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+webServer.listen(auth.WEB_SERVER_PORT, () => {
+    console.log(`Server running at http://localhost:${auth.WEB_SERVER_PORT}`);
 });

@@ -1,4 +1,4 @@
 src/auth.json
 node_modules
-src/twitc/api/rewards.json
+src/twitch/api/rewards.json
 dist/

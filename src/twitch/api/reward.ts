@@ -5,9 +5,9 @@ type RewardJson = { id: string, title: string, cost: number, isPausedStates: Sta
 type State = { [key: string]: boolean };
 const REWARDS = rewardsConfig.REWARDS as RewardJson[];
 
-function transformRewardsState(): {[key: string]: State} {
+function transformRewardsState(): { [key: string]: State } {
     const queueStates = ["chat", "nhanify", "null"];
-    const result: {[key: string]: State} = {};
+    const result: { [key: string]: State } = {};
     queueStates.forEach(queueState => {
         const state: State = {};
         REWARDS.forEach(reward => {
@@ -17,8 +17,7 @@ function transformRewardsState(): {[key: string]: State} {
     })
     return result;
 }
-const rewardsStates:  {[key: string]: State} = transformRewardsState();
-console.log("HERE IS REWARDSTATES", rewardsStates);
+const isPausedStates: { [key: string]: State } = transformRewardsState();
 interface RewardBase {
     id: string;
     title: string;
@@ -54,14 +53,10 @@ interface RewardType extends RewardBase {
     }
 }
 
-
-
 class Rewards {
     constructor(private rewards: Reward[]) { }
-
     getRewards(): RewardType[] {
         return this.rewards.map(reward => {
-            console.log("IN GETREWARDS", reward);
             return reward.getReward()
         })
     }
@@ -75,38 +70,13 @@ class Rewards {
     }
 
     async setRewardsIsPause(queueState: string) {
-        /*const rewardsStates: Record<string, Record<string, boolean>> = {
-            "chat": {
-                "NhanifyBot: Skip Playlist": true, //is_paused
-                "NhanifyBot: Skip Song": false,
-                "NhanifyBot: Request Song": false,
-                "NhanifyBot: Save Song": false
-            },
-            "nhanify": {
-                "NhanifyBot: Skip Playlist": false,
-                "NhanifyBot: Skip Song": false,
-                "NhanifyBot: Request Song": false,
-                "NhanifyBot: Save Song": false
-            },
-            "null": {
-                "NhanifyBot: Skip Playlist": true,
-                "NhanifyBot: Skip Song": true,
-                "NhanifyBot: Request Song": true,
-                "NhanifyBot: Save Song": true
-            }
-        }
-        */
-        const states = rewardsStates[queueState];
+        const states = isPausedStates[queueState];
         const updatePromises = [];
-        //iterate through the object 
         for (let rewardName in states) {
-            // get the reward 
             const reward = rewards.getReward(rewardName);
             if (reward) {
                 const isPaused = states[rewardName];
-                // if the current reward pause state is not the same as the value at reward
                 if (reward.getIsPaused() !== isPaused) {
-                    // call the api and change state to opposite of valuel at reward 
                     updatePromises.push(reward.setIsPaused(isPaused));
                 }
             }
@@ -120,19 +90,14 @@ class Rewards {
                 console.log(`${reward.type}: ${reward.result.error}`);
             }
         });
-        /*const rewards =  titles.map(title => this.getReward(title));
-        const promises = rewards.map(reward => reward!.setIsPaused(state));
-        const updatedRewards = await Promise.all(promises);
-        updatedRewards.forEach(reward => console.log(`${reward.type}: ${reward.result.title} is ${reward.result.is_paused ? "paused" : "resumed"}`));
-        */
     }
 
     getJsonConfig() {
-        const REWARDS = this.getRewards().map((reward: RewardType) => {
-            console.log("IN CONFIG", reward);
-            return { id: reward.id, title: reward.title, cost: reward.cost };
+        const result = this.getRewards().map((reward: RewardType) => {
+            const rewardFound = REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
+            return { id: reward.id, title: reward.title, cost: reward.cost, isPausedStates: rewardFound?.isPausedStates };
         });
-        return { REWARDS };
+        return { REWARDS: result };
     }
 }
 
@@ -160,26 +125,6 @@ class Reward {
     }
 
     async setIsPaused(state: boolean) {
-        /*
-    const  updateReward = {
-        id: this.reward.id, 
-        title: this.reward.title, 
-        cost: this.reward.cost, 
-        prompt: this.reward.prompt,
-        background_color: this.reward.background_color,
-        is_enabled: this.reward.is_enabled,
-        is_user_input_required: this.reward.is_user_input_required,
-        is_paused: !this.reward.is_paused,
-        should_redemptions_skip_request_queue: this.reward.should_redemptions_skip_request_queue,
-        is_max_per_stream_enabled:this.reward.max_per_stream_setting.is_enabled,
-        max_per_stream: this.reward.max_per_stream_setting.max_per_stream,
-        is_max_per_user_per_stream_enabled: this.reward.max_per_user_per_stream_setting.is_enabled,
-        max_per_user_per_stream: this.reward.max_per_user_per_stream_setting.max_per_user_per_stream,
-        is_global_cooldown_enabled:this.reward.global_cooldown_setting.is_enabled,
-        global_cooldown_seconds: this.reward.global_cooldown_setting.global_cooldown_seconds,
-    }; 
-
-        */
         const response = await fetch(
             `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${this.reward.id}`,
             {
@@ -195,7 +140,6 @@ class Reward {
         const result = await response.json();
         if (response.ok) {
             this.reward.is_paused = result.data[0].is_paused;
-            console.log("IS PAUSED VALUE", this.getIsPaused())
             return { type: "success", result: result.data[0] }
         } else {
             return { type: "error", result };
@@ -252,16 +196,29 @@ async function getNhanifyRewards() {
     });
     const rewardsTwitch = await Promise.all(promises);
     const errors = rewardsTwitch.filter(rewards => rewards.type === "error");
-    console.log(`Rewards not found: ${JSON.stringify(errors)}`);
+    const foundSuccesses = rewardsTwitch.filter(rewards => rewards.type === "success");
+    rewardsTwitch.forEach(response => {
+        if (response.type === "error") {
+            console.log(`${response.result.reward.title} reward not found.`)
+        } else if (response.type === "success") {
+            console.log(`${response.result.title} reward found.`)
+        }
+    });
     const createPromises = errors.map(error => {
         return createReward(error.result.reward);
     });
     const createdRewardsTwitch = await Promise.all(createPromises);
-    console.log(`Rewards created: ${JSON.stringify(createdRewardsTwitch)}`);
-    const successes = [...rewardsTwitch, ...createdRewardsTwitch].filter(reward => reward.type === "success");
-    successes.forEach(success => {
+    createdRewardsTwitch.forEach(response => {
+        if (response.type === "error") {
+            console.log(`${response.result.title} reward not created.`)
+        } else if (response.type === "success") {
+            console.log(`${response.result.title} reward created.`)
+        }
+    });
+    const createdSuccesses = [...foundSuccesses, ...createdRewardsTwitch].filter(reward => reward.type === "success");
+    createdSuccesses.forEach(success => {
         rewards.addReward(new Reward(success.result))
-        console.log(`${success.result.title} reward was added.`)
+        console.log(`${success.result.title} reward instance was created and added to rewards class.`)
     });
     if (errors.length > 0) writeFileSync("./src/twitch/api/rewards.json", JSON.stringify(rewards.getJsonConfig()));
 }

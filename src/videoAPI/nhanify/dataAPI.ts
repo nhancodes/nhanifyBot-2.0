@@ -39,7 +39,6 @@ async function getPublicPlaylists() {
         },
     });
     const result = await response.json();
-    console.log("IN GET PUBLIC PLAYLISTS", result);
     //fitlter out playlist with 0 songs 
     const filteredPlaylists = result.playlists.filter((playlist: { songCount: number; }) => playlist.songCount > 0);
     const playlists = filteredPlaylists.map((playlist: { id: number; title: string; creator: { username: string; }; }) => {

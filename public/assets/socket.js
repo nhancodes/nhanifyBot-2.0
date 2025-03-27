@@ -77,7 +77,7 @@ ws.onmessage = function (event) {
         videos.forEach((song) => addSongCard(song, "songCard", songsDiv));
         // start the cooldown
         break;
-      case "bot2pause":
+      case "pause":
         if (window.queue) {
           player.pauseVideo();
           ws.send(JSON.stringify({ action: "pause" }));
@@ -85,7 +85,7 @@ ws.onmessage = function (event) {
           curSongImg.setAttribute("src", "/assets/img/pause.png");
         }
         break;
-      case "bot2resume":
+      case "resume":
         if (window.queue) {
           player.playVideo();
           ws.send(JSON.stringify({ action: "resume" }));

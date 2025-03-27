@@ -8,7 +8,7 @@ import { ParsedMessage } from "../types.js";
 // Expects the caller to pass a single message. (Remember, the Twitch
 // IRC server may send one or more IRC messages in a single message.)
 
-export function parseMessage(message: string) : ParsedMessage{
+export function parseMessage(message: string): ParsedMessage {
 
   let parsedMessage = {} as ParsedMessage;
 
@@ -18,9 +18,9 @@ export function parseMessage(message: string) : ParsedMessage{
 
   // The raw components of the IRC message.
 
-  let rawTagsComponent : string  | null = null;
-  let rawSourceComponent : string | null = null ; //[foo!foo@foo.tmi.twitch.tv, JOIN #bar]
-  let rawCommandComponent : string | null = null;
+  let rawTagsComponent: string | null = null;
+  let rawSourceComponent: string | null = null; //[foo!foo@foo.tmi.twitch.tv, JOIN #bar]
+  let rawCommandComponent: string | null = null;
   let rawParametersComponent: string | null = null;
 
   // If the message includes tags, get the tags component of the IRC message.
@@ -63,32 +63,31 @@ export function parseMessage(message: string) : ParsedMessage{
 
   // Parse the command component of the IRC message.
   if (parsedMessage) {
-  parsedMessage.command = parseCommand(rawCommandComponent); //JOIN #bar // {command: JOIN, channel: #bar} assigned to parsedMessage commmand property
+    parsedMessage.command = parseCommand(rawCommandComponent); //JOIN #bar // {command: JOIN, channel: #bar} assigned to parsedMessage commmand property
 
-  // Only parse the rest of the components if it's a command
-  // we care about; we ignore some messages.
+    // Only parse the rest of the components if it's a command
+    // we care about; we ignore some messages.
 
-  if (null == parsedMessage.command) {
-    // Is null if it's a message we don't care about.
-    return null;
-  } else {
-    if (null != rawTagsComponent) {
-      // The IRC message contains tags.
-      parsedMessage.tags = parseTags(rawTagsComponent);
-    }
+    if (null == parsedMessage.command) {
+      // Is null if it's a message we don't care about.
+      return null;
+    } else {
+      if (null != rawTagsComponent) {
+        // The IRC message contains tags.
+        parsedMessage.tags = parseTags(rawTagsComponent);
+      }
 
-    parsedMessage.source = parseSource(rawSourceComponent);
+      parsedMessage.source = parseSource(rawSourceComponent);
 
-    parsedMessage.parameters = rawParametersComponent;
-    if (rawParametersComponent && rawParametersComponent[0] === "!") {
-      // The user entered a bot command in the chat window.
-      parsedMessage.command = parseParameters(
-        rawParametersComponent,
-        parsedMessage.command
-      );
+      parsedMessage.parameters = rawParametersComponent;
+      if (rawParametersComponent && rawParametersComponent[0] === "!") {
+        // The user entered a bot command in the chat window.
+        parsedMessage.command = parseParameters(
+          rawParametersComponent,
+          parsedMessage.command
+        );
+      }
     }
   }
-  }
-  console.log({parsedMessage});
   return parsedMessage;
 }

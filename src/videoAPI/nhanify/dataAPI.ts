@@ -18,7 +18,7 @@ export const nhanify: Nhanify = {
     },
     async getSongs(): Promise<YTVideo[]> {
         const id = this.getPlaylist().id;
-        const response = await fetch(`http://localhost:3002/api/playlists/${id}`, {
+        const response = await fetch(`${auth.HOST}/api/playlists/${id}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
@@ -31,7 +31,7 @@ export const nhanify: Nhanify = {
 }
 
 async function getPublicPlaylists() {
-    const response = await fetch("http://localhost:3002/api/playlists/public", {
+    const response = await fetch(`${auth.HOST}/api/playlists/public`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,

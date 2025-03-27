@@ -13,14 +13,14 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
         webSocketServerClients.forEach(client => {
             client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
         });
-        rewards.setRewardsIsPause("chat");
+        await rewards.setRewardsIsPause("chat");
     } else if (!nhanifyQueue.isEmpty()) {
         Queue.setPlayingOn("nhanify");
         webSocketServerClients.forEach(client => {
             client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
         });
 
-        rewards.setRewardsIsPause("nhanify");
+        await rewards.setRewardsIsPause("nhanify");
     } else {
         if (nhanify) {
             // increment by playlistIndex mod playlistLength 
@@ -34,14 +34,14 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             });
-            rewards.setRewardsIsPause("nhanify");
+            await rewards.setRewardsIsPause("nhanify");
         } else {
             //configure to chat only
             Queue.setPlayingOn(null);
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "emptyQueues", queue: null }));
             });
-            rewards.setRewardsIsPause("null");
+            await rewards.setRewardsIsPause("null");
         }
     }
 }
@@ -56,22 +56,22 @@ export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>,
         // set the nhanify playlist queue to the new songs
         nhanifyQueue.nextQueue({ type: "nhanify", title: nhanifyPlaylist.title, creator: nhanifyPlaylist.creator, videos: nhanifySongs });
         //check if chat of nhanify queue to populated
-    
+
         if (!chatQueue.isEmpty()) {
             Queue.setPlayingOn("chat");
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
             });
-            rewards.setRewardsIsPause("chat");
-        nhanify.nextPlaylist();
+            await rewards.setRewardsIsPause("chat");
+            nhanify.nextPlaylist();
         } else if (!nhanifyQueue.isEmpty()) {
             Queue.setPlayingOn("nhanify");
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             });
-    
-            rewards.setRewardsIsPause("nhanify");
-        } 
+
+            await rewards.setRewardsIsPause("nhanify");
+        }
         const queue = Queue.getPlayingOn() === "chat" ? chatQueue.getQueue() : Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getQueue() : null;
         webSocketServerClients.forEach(client => {
             client.send(JSON.stringify({ action: "play", queue }));

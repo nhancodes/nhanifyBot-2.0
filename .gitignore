@@ -1,3 +1,4 @@
 src/auth.json
 node_modules
+src/twitc/api/rewards.json
 dist/

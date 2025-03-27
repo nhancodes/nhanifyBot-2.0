@@ -9,6 +9,7 @@ export const nhanify: Nhanify = {
     playlists: [],
     async setPublicPlaylists() {
         this.playlists = await getPublicPlaylists();
+        this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     nextPlaylist() {
         this.playlistIndex += 1;

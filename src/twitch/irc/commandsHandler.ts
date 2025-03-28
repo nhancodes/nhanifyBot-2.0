@@ -9,16 +9,28 @@ import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
 import config from '../../../config.json' with {type: 'json'};
 type OnlyBroadcasterType = { [key: string]: boolean };
-const { ONLYBROADCASTER } = config as { "NHANIFY": boolean, "ONLYBROADCASTER": OnlyBroadcasterType };
+type Env = { [key: string]: string };
+type Commands = { [key: string]: Env };
+const { ONLYBROADCASTER, COMMANDS } = config as { "NHANIFY": boolean; "ONLYBROADCASTER": OnlyBroadcasterType; "COMMANDS": Commands };
+const commands: Env = COMMANDS[auth.ENV];
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
         const botCommand = parsedMessage.command.botCommand;
+        // Find the key that matches the botCommand
+        const commandKey = Object.keys(commands).find(
+            key => commands[key] === botCommand
+        )
         if (chatter) ircCommand.setChatter(chatter);
-        switch (botCommand) {
-            case "sr":
-                if (ONLYBROADCASTER.sr) {
+        switch (commandKey) {
+            case "commands":
+                const chatCommands = Object.entries(commands).filter(command => !ONLYBROADCASTER[command[0]]);
+                const formattedCommands = chatCommands.map(command => `${command[0]}: !${command[1]}`).join(" | ");
+                client.send(`PRIVMSG ${channel} : @${chatter}, ${formattedCommands}`);
+                break;
+            case "songRequest":
+                if (ONLYBROADCASTER.songRequest) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
                 const url = parsedMessage.command.botCommandParams ? parsedMessage.command.botCommandParams : "";
@@ -56,8 +68,8 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 } catch (error) {
                     console.log(error);
                 }
-            case "resume":
-                if (ONLYBROADCASTER.resume) {
+            case "resumeSong":
+                if (ONLYBROADCASTER.resumeSong) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 if (Queue.getIsPlaying()) break;
@@ -68,8 +80,8 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     client.send(JSON.stringify({ action: botCommand, queue: null }));
                 });
                 break;
-            case "pause":
-                if (ONLYBROADCASTER.pause) {
+            case "pauseSong":
+                if (ONLYBROADCASTER.pauseSong) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 if (!Queue.getIsPlaying()) break;
@@ -86,7 +98,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 }
                 playerSkipSong(webSocketServerClients, client, nhanifyQueue, chatQueue, chatter!, nhanify);
                 break;
-            case "song":
+            case "playingSong":
                 if (ONLYBROADCASTER.song) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
@@ -100,8 +112,8 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 }
                 playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!, chatQueue);
                 break;
-            case "save": {
-                if (ONLYBROADCASTER.save) {
+            case "saveSong": {
+                if (ONLYBROADCASTER.saveSong) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
                 if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) return client.send(`PRIVMSG ${channel} : @${chatter}, No song playing to save.`);

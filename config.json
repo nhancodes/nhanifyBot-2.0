@@ -1,12 +1,35 @@
 {
      "NHANIFY": true,
      "ONLYBROADCASTER": {
-          "sr": false,
+          "songRequest": false,
           "skipSong": true,
           "skipPlaylist": true,
-          "save": false,
-          "song": false,
-          "pause": true,
-          "resume": true
+          "saveSong": false,
+          "playingSong": false,
+          "pauseSong": true,
+          "resumeSong": true,
+          "commands": false
+     },
+     "COMMANDS": {
+          "prod": {
+               "songRequest": "sr",
+               "skipSong": "sks",
+               "skipPlaylist": "skp",
+               "saveSong": "svs",
+               "playingSong": "s",
+               "pauseSong": "ps",
+               "resumeSong": "rs",
+               "commands": "commands"
+          },
+          "dev": {
+               "songRequest": "devsr",
+               "skipSong": "devsks",
+               "skipPlaylist": "devskp",
+               "saveSong": "devsvs",
+               "playingSong": "devs",
+               "pauseSong": "devps",
+               "resumeSong": "devrs",
+               "commands": "devcommands"
+          }
      }
 }

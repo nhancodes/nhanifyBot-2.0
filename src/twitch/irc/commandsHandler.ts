@@ -71,10 +71,10 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 } catch (error) {
                     console.log(error);
                 }
-            case "resumeSong":
-                if (ONLYBROADCASTER.resumeSong) {
-                    if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
-                }
+                break;
+            case "resumeSong": if (ONLYBROADCASTER.resumeSong) {
+                if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
+            }
                 if (Queue.getIsPlaying()) break;
                 Queue.toggleIsPlaying();
                 await rewards.setRewardsIsPause("nhanify");

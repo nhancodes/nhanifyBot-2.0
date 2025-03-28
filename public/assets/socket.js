@@ -1,4 +1,4 @@
-const ws = new WebSocket("ws://localhost:3088");
+const ws = new WebSocket(`ws://localhost:${window.location.port}`);
 
 ws.onerror = function (error) {
   console.log("WebSocket error:", error);

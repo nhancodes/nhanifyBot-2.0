@@ -16,7 +16,8 @@ function onYouTubeIframeAPIReady() {
         },
         events: {
             onReady: onPlayerReady,
-            onStateChange: onPlayerStateChange
+            onStateChange: onPlayerStateChange,
+            onError: onPlayerError
         },
     });
 }
@@ -30,4 +31,9 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
         ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue.type } }));
     }
+}
+
+function onPlayerError(event) {
+    console.log("ERROR", event.data);
+    ws.send(JSON.stringify({ action: "finished", queue: { type: window.queue.type } }));
 }

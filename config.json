@@ -8,7 +8,8 @@
           "playingSong": false,
           "pauseSong": true,
           "resumeSong": true,
-          "commands": false
+          "commands": false,
+          "nhanify": false
      },
      "COMMANDS": {
           "prod": {
@@ -19,7 +20,8 @@
                "playingSong": "s",
                "pauseSong": "ps",
                "resumeSong": "rs",
-               "commands": "commands"
+               "commands": "commands",
+               "aboutNhanify": "nhanify"
           },
           "dev": {
                "songRequest": "devsr",
@@ -29,7 +31,8 @@
                "playingSong": "devs",
                "pauseSong": "devps",
                "resumeSong": "devrs",
-               "commands": "devcommands"
+               "commands": "devcommands",
+               "aboutNhanify": "devnhanify"
           }
      }
 }

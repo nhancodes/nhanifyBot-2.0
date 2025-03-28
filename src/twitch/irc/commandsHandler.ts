@@ -24,6 +24,9 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
         )
         if (chatter) ircCommand.setChatter(chatter);
         switch (commandKey) {
+            case "aboutNhanify":
+                client.send(`PRIVMSG ${channel} : @${chatter}, https://www.youtube.com/shorts/d6Uwh81MoKM`);
+                break;
             case "commands":
                 const chatCommands = Object.entries(commands).filter(command => !ONLYBROADCASTER[command[0]]);
                 const formattedCommands = chatCommands.map(command => `${command[0]}: !${command[1]}`).join(" | ");

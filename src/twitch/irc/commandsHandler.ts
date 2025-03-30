@@ -72,7 +72,8 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     console.log(error);
                 }
                 break;
-            case "resumeSong": if (ONLYBROADCASTER.resumeSong) {
+            case "resumeSong": 
+            if (ONLYBROADCASTER.resumeSong) {
                 if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
             }
                 if (Queue.getIsPlaying()) break;
@@ -80,7 +81,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 await rewards.setRewardsIsPause("nhanify");
                 // call the twitch api to pause redeemsgtgt
                 webSocketServerClients.forEach(client => {
-                    client.send(JSON.stringify({ action: botCommand, queue: null }));
+                    client.send(JSON.stringify({ action: commandKey, queue: null }));
                 });
                 break;
             case "pauseSong":
@@ -92,7 +93,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 await rewards.setRewardsIsPause("null");
                 // call the twitch api to pause redeemsgtgt
                 webSocketServerClients.forEach(client => {
-                    client.send(JSON.stringify({ action: botCommand, queue: null }));
+                    client.send(JSON.stringify({ action: commandKey, queue: null }));
                 });
                 break;
             case "skipSong":

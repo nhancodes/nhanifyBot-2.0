@@ -1,5 +1,17 @@
 :root {
     --duration: 30;
+    --overlay-font: system-ui;
+    --overlay-font-size-head: 1.5rem;
+    --overlay-font-weight-head: bold;
+    --overlay-font-color-head: white;
+    --overlay-font-size-body: 1.5rem;
+    --overlay-font-weight-body: bold;
+    --overlay-font-color-body: white;
+    --overlay-background: #174172;
+    --overlay-song-background: rgba(255, 255, 255, 0.25);
+    --overlay-playing-song-background:#b19400;
+    --overlay-songs-border-radius: .5rem;
+    --overlay-song-row-gap: .5rem;
 }
 
 #player {
@@ -7,17 +19,17 @@
 }
 
 p {
-    font-size: 1.5rem;
+    font-size: var(--overlay-font);
     margin: 0;
-    color: white;
+    color: var(--overlay-font-color-body);
     align-self: center;
-    font-family: system-ui;
-    font-weight: bold;
+    font-family: var(--overlay-font);
+    font-weight: var(--overlay-font-weight-body);
 }
 
 h1 {
-    font-family: system-ui;
-    color: white;
+    font-family: var(--overlay-font);
+    color: var(--overlay-font-color-head);
     margin: 0rem;
 }
 
@@ -25,7 +37,7 @@ body {
     display: flex;
     flex-direction: column;
     row-gap: .5rem;
-    background-color: #174172;
+    background-color: var(--overlay-background);
 }
 
 #header {
@@ -46,18 +58,18 @@ body {
 .songsDiv {
     display: flex;
     flex-direction: column;
-    row-gap: .5rem;
+    row-gap: var(--overlay-song-row-gap);
 }
 
 .songCard {
     padding: .5rem;
-    background-color: rgba(255, 255, 255, 0.25);
-    border-radius: .5rem;
+    background-color: var(--overlay-song-background);
+    border-radius: var(--overlay-songs-border-radius);
 }
 
 .curSongCardDisc {
     padding: .5rem;
-    border-radius: .5rem;
+    border-radius: var(--overlay-songs-border-radius);
     width: 100%;
 }
 
@@ -65,8 +77,8 @@ body {
     display: flex;
     flex-direction: row;
     column-gap: 1rem;
-    border-radius: .5rem;
-    background-color: #b19400;
+    border-radius: var(--overlay-songs-border-radius);
+    background-color: var(--overlay-playing-song-background);
     align-items: center;
 }
 

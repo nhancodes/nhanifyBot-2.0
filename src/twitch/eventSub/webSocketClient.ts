@@ -62,7 +62,7 @@ export async function handleWebSocketMessage(websocketClients: WebSocket[], data
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
             const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
-            commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
+            await commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
             break;
     }
 }

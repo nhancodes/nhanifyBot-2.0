@@ -1,6 +1,7 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import rewardsConfig from './rewards.json' with {type: 'json'};
+import { RewardRedeemEvent } from '../eventSub/types.js';
 type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
 type State = { [key: string]: boolean };
 const REWARDS = rewardsConfig.REWARDS as RewardJson[];
@@ -61,8 +62,12 @@ class Rewards {
         })
     }
 
-    getReward(title: string) {
+    getRewardByTitle(title: string) {
         return this.rewards.find(reward => reward.getTitle() === title);
+    }
+
+    getRewardById(id: string) {
+        return this.rewards.find(reward => reward.getId() === id);
     }
 
     addReward(reward: Reward) {
@@ -73,7 +78,7 @@ class Rewards {
         const states = isPausedStates[queueState];
         const updatePromises = [];
         for (let rewardName in states) {
-            const reward = rewards.getReward(rewardName);
+            const reward = rewards.getRewardByTitle(rewardName);
             if (reward) {
                 const isPaused = states[rewardName];
                 if (reward.getIsPaused() !== isPaused) {
@@ -122,6 +127,27 @@ class Reward {
 
     setReward(reward: RewardType) {
         this.reward = reward;
+    }
+
+    async setRedeemStatus(redeemId: string, status: "CANCELED" | "FULFILLED" | "UNFULFILLED") {
+        const response = await fetch(
+            `https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions?broadcaster_id=${auth.BROADCASTER_ID}&reward_id=${this.reward.id}&id=${redeemId}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'client-id': auth.CLIENT_ID,
+                    'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status})
+            }
+        )
+        const result = await response.json();
+        if (response.ok) {
+            return { type: "success", result: result.data[0] }
+        } else {
+            return { type: "error", result };
+        }
     }
 
     async setIsPaused(state: boolean) {

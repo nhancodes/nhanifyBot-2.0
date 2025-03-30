@@ -33,7 +33,7 @@ async function getNhanifyVideos(): Promise<Config> {
 }
 const { nhanify, queue }: Config = await getNhanifyVideos();
 const nhanifyQueue = new Queue(queue);
-const { webSocketServerClients, setIrcClient } = startWebSocketServer(chatQueue, nhanifyQueue, nhanify, rewards);
+const { webSocketServerClients, setIrcClient} = startWebSocketServer(chatQueue, nhanifyQueue, nhanify, rewards);
 const ircClient = await startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue, nhanify, rewards);
 setIrcClient(ircClient);
 await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);

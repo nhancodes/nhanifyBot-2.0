@@ -17,7 +17,8 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
-                        console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)  
+                        console.log("IN REDEEM_________", response.result);
+                        console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)
                     }
                     break;
                 }
@@ -26,7 +27,8 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
-                        console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)  
+                        console.log("IN REDEEM_________", response.result);
+                        console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)
                     }
                     break;
                 }

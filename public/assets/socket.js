@@ -13,20 +13,6 @@ async function loadUserConfig() {
     console.error("Error loading user config:", error);
   }
 }
-/*
-"overlay_font": "system-ui",
-        "overlay_font_size_head": "1.5rem",
-        "overlay_font_weight_head": "bold",
-        "overlay_font_color_head": "white",
-        "overlay_font_size_body": "1.5rem",
-        "overlay_font_weight_body": "bold",
-        "overlay_font_color_body": "white",
-        "overlay_background": "#174172",
-        "overlay_song_background": "rgba(255, 255, 255, 0.25)",
-        "overlay_playing_song_background":"red",
-        "overlay_songs_border_radius": ".5rem",
-        "overlay_song_row_gap": ".5rem"
-*/
 // Load config on page load
 window.addEventListener("DOMContentLoaded", loadUserConfig);
 const ws = new WebSocket(`ws://localhost:${window.location.port}`);

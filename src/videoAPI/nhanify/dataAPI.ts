@@ -18,11 +18,15 @@ export const nhanify: Nhanify = {
     nextPlaylist() {
         this.playlistIndex += 1;
     },
+    isLastPlaylist(): boolean {
+        return this.playlists.length === this.playlistIndex + 1;
+    },
     getPlaylist(): NhanifyPlaylist {
         return this.playlists[this.playlistIndex % this.playlists.length]; //0 % 4 4 % 4
     },
     async getSongs(): Promise<YTVideo[]> {
         const id = this.getPlaylist().id;
+        console.log("ID____", id);
         const response = await fetch(`${auth.HOST}/api/playlists/${id}`, {
             method: 'GET',
             headers: {
@@ -30,8 +34,13 @@ export const nhanify: Nhanify = {
                 'User-Id': auth.NHANCODES_ID,
             },
         });
-        const playlist = await response.json();
-        return shuffleItems(playlist.songs) as YTVideo[];
+
+        const playlist: { songs: { durationSec: number }[] } = await response.json();
+        console.log("SONGS IN PLAYLIST____", playlist);
+        console.log("SONGS IN PLAYLIST____", playlist.songs);
+        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= 600);
+        if (filterPlaylists.length > 0) return shuffleItems(filterPlaylists as YTVideo[]);
+        return [];
     },
 }
 
@@ -79,7 +88,7 @@ async function getPublicPlaylists() {
     return shuffleItems(playlists) as NhanifyPlaylist[];
 }
 
-function shuffleItems(items: NhanifyPlaylist[] | YTVideo[]) {
+function shuffleItems(items: NhanifyPlaylist[] | YTVideo[]): YTVideo[] {
     for (let i = items.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1)); // Random index from 0 to i
         [items[i], items[j]] = [items[j], items[i]]; // Swap elements

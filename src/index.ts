@@ -22,8 +22,8 @@ async function getNhanifyVideos(): Promise<Config> {
         try {
             const { nhanify } = await import('./videoAPI/nhanify/dataAPI.js');
             NHANIFY.playlistsById.length === 0 ? await nhanify!.setPublicPlaylists() : await nhanify!.setPlaylistsById(NHANIFY.playlistsById);
-            const { creator, title } = nhanify!.getPlaylist();//configure: nhanify
-            const videos: YTVideo[] = await nhanify!.getSongs();//configure: nhanify
+            const { creator, title } = nhanify!.getPlaylist();
+            const videos: YTVideo[] = await nhanify!.getSongs();
             return { nhanify, queue: { type: "nhanify", title, creator, videos } } as Config;
         } catch (err) {
             console.error('Failed to load module:', err)

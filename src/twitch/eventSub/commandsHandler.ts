@@ -16,8 +16,8 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
-                        if (parsedSubscription.status === "UNFULFILLED") {
-                            const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
+                        const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
+                        if (response.type === "success") {
                             console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)
                         }
                     }
@@ -27,8 +27,8 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
-                        if (parsedSubscription.status === "UNFULFILLED") {
-                            const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
+                        const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
+                        if (response.type === "success") {
                             console.log(`Redeem ${response.result.reward.title} was ${response.result.status}.`)
                         }
                     }

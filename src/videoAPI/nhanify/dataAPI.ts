@@ -11,6 +11,10 @@ export const nhanify: Nhanify = {
         this.playlists = await getPublicPlaylists();
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
+    async setPlaylistsById(playlistIds: number[]) {
+        this.playlists = await getPlaylistsById(playlistIds);
+        this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
+    },
     nextPlaylist() {
         this.playlistIndex += 1;
     },
@@ -29,6 +33,29 @@ export const nhanify: Nhanify = {
         const playlist = await response.json();
         return shuffleItems(playlist.songs) as YTVideo[];
     },
+}
+
+async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[]> {
+    const playlistPromises = playlistsId.map(async playlistId => {
+        const response = await fetch(`${auth.HOST}/api/playlists/${playlistId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
+                'User-Id': auth.NHANCODES_ID,
+            },
+        });
+
+        if (!response.ok) return undefined;
+        const playlist = await response.json();
+        if (playlist.songCount === 0) return undefined;
+        return {
+            id: playlist.id,
+            title: playlist.title,
+            creator: "placeholder"
+        } as NhanifyPlaylist
+    })
+    const playlistsParsed = (await Promise.all(playlistPromises)).filter(Boolean) as NhanifyPlaylist[];
+    return playlistsParsed;
 }
 
 async function getPublicPlaylists() {

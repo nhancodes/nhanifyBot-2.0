@@ -17,6 +17,7 @@ export type Nhanify = {
     playlistIndex: number;
     playlists: NhanifyPlaylist[]; // Assume `getPublicPlaylists()` resolves to this
     setPublicPlaylists(): Promise<void>;
+    setPlaylistsById(playlistIds: number[]): Promise<void>;
     nextPlaylist(): void;
     getPlaylist(): NhanifyPlaylist;
     getSongs(): Promise<YTVideo[]>; // Assuming `songs` is an array of any type

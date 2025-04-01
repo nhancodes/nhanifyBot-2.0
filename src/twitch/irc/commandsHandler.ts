@@ -8,10 +8,8 @@ import { Rewards } from '../api/reward.js';
 import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
 import config from '../../../config.json' with {type: 'json'};
-type OnlyBroadcasterType = { [key: string]: boolean };
-type Env = { [key: string]: string };
-type Commands = { [key: string]: Env };
-const { ONLYBROADCASTER, COMMANDS } = config as { "NHANIFY": boolean; "ONLYBROADCASTER": OnlyBroadcasterType; "COMMANDS": Commands };
+import { OnlyBroadcasterType, NhanifyConfig, Commands, Env } from '../../configType.js'
+const { ONLYBROADCASTER, COMMANDS } = config as { "NHANIFY": NhanifyConfig; "ONLYBROADCASTER": OnlyBroadcasterType; "COMMANDS": Commands };
 const commands: Env = COMMANDS[auth.ENV];
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
@@ -72,10 +70,10 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                     console.log(error);
                 }
                 break;
-            case "resumeSong": 
-            if (ONLYBROADCASTER.resumeSong) {
-                if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
-            }
+            case "resumeSong":
+                if (ONLYBROADCASTER.resumeSong) {
+                    if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
+                }
                 if (Queue.getIsPlaying()) break;
                 Queue.toggleIsPlaying();
                 await rewards.setRewardsIsPause("nhanify");

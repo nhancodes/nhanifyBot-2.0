@@ -1,5 +1,12 @@
 {
-     "NHANIFY": true,
+     "NHANIFY": {
+          "enabled": true,
+          "playlistsById": [
+               7,
+               1,
+               "dksdkfls"
+          ]
+     },
      "ONLYBROADCASTER": {
           "songRequest": false,
           "skipSong": true,

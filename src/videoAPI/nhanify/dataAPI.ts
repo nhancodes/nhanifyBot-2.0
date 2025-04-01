@@ -3,7 +3,7 @@
 //when loading the playlist check all songs to see if they still exist if not render the song grey and have the player skip the song
 
 import auth from '../../auth.json' with {type: 'json'};
-import { Nhanify, NhanifyPlaylist, NhanifyQueue, YTVideo } from '../types.js';
+import { Nhanify, NhanifyPlaylist, NhanifyQueue, PlaylistAPI, YTVideo } from '../types.js';
 export const nhanify: Nhanify = {
     playlistIndex: 0,
     playlists: [],
@@ -36,26 +36,26 @@ export const nhanify: Nhanify = {
 }
 
 async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[]> {
-    const playlistPromises = playlistsId.map(async playlistId => {
-        const response = await fetch(`${auth.HOST}/api/playlists/${playlistId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
-                'User-Id': auth.NHANCODES_ID,
-            },
-        });
-
-        if (!response.ok) return undefined;
-        const playlist = await response.json();
-        if (playlist.songCount === 0) return undefined;
+    const queryParams = playlistsId.map(idValue => `id=${idValue}`).join('&');
+    const response = await fetch(`${auth.HOST}/api/playlists?${queryParams}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
+            'User-Id': auth.NHANCODES_ID,
+        },
+    });
+    if (!response.ok) return [];
+    const playlists: PlaylistAPI[] = (await response.json()).playlists;
+    console.log(playlists);
+    const filterPlaylists = playlists.filter(playlist => playlist.songCount > 0);
+    return filterPlaylists.map((playlist) => {
         return {
             id: playlist.id,
             title: playlist.title,
-            creator: "placeholder"
-        } as NhanifyPlaylist
-    })
-    const playlistsParsed = (await Promise.all(playlistPromises)).filter(Boolean) as NhanifyPlaylist[];
-    return playlistsParsed;
+            creator: playlist.creator.username
+        };
+
+    });
 }
 
 async function getPublicPlaylists() {

@@ -3,8 +3,10 @@
           "enabled": true,
           "playlistsById": [
                7,
-               1,
-               "dksdkfls"
+               -1,
+               "10",
+               11,
+               12
           ]
      },
      "ONLYBROADCASTER": {

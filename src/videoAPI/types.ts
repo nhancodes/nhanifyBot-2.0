@@ -1,3 +1,5 @@
+
+export type PlaylistAPI = { id: number; title: string; songCount: number; creator: { username: string; } };
 export type YTVideo = {
     title?: string;
     videoId?: string;

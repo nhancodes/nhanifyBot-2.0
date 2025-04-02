@@ -22,7 +22,6 @@ export const nhanify: Nhanify = {
         return this.playlists.length === this.playlistIndex + 1;
     },
     getPlaylist(): NhanifyPlaylist {
-        if (this.playlists.length === 0) return null;
         return this.playlists[this.playlistIndex % this.playlists.length]; //0 % 4 4 % 4
     },
     async getSongs(): Promise<YTVideo[]> {

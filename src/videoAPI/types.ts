@@ -6,7 +6,7 @@ export type YTVideo = {
     restriction?: string;
 };
 
-export type NhanifyPlaylist = { id: number; title: string, creator: string } | null;
+export type NhanifyPlaylist = { id: number; title: string, creator: string };
 type QueueType<Type extends string> = {
     type: Type;
     title?: string;

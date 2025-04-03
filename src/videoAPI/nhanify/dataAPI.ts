@@ -18,22 +18,38 @@ export const nhanify: Nhanify = {
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async nextPlaylist(): Promise<NhanifyQueue> {
-        let videos: YTVideo[];
-        let creator: string;
-        let title: string;
-        do {
-            const playlist = this.getPlaylist();
+        /* let videos: YTVideo[];
+         let creator: string;
+         let title: string;
+         do {
+             const playlist = this.getPlaylist();
+             creator = playlist.creator;
+             title = playlist.title;
+             videos = await this.getSongs(playlist.id);
+ 
+             console.log("IN DO WHILE: Title", title, "VideosLength", videos.length);
+ 
+             //this.getSongs()
+             this.playlistIndex += 1;
+             console.log("THE LAST PLAYLIST", this.isLastPlaylist());
+         } while (videos.length === 0 && !this.isLastPlaylist());
+         return { type: "nhanify", videos, creator, title }
+         */
+        // have the length of the current playlist 
+        let playlist = this.getPlaylist();
+        let videos = await this.getSongs(playlist.id);
+        let playlistLength = videos.length;
+        let creator = playlist.creator;
+        let title = playlist.title;
+        while (playlistLength === 0 && !this.isLastPlaylist()) {
+            playlist = this.getPlaylist();
             creator = playlist.creator;
             title = playlist.title;
             videos = await this.getSongs(playlist.id);
-
-            console.log("IN DO WHILE: Title", title, "VideosLength", videos.length);
-
-            //this.getSongs()
+            playlistLength = videos.length;
             this.playlistIndex += 1;
-        } while (videos.length === 0 && !this.isLastPlaylist());
+        }
         return { type: "nhanify", videos, creator, title }
-
     },
     isLastPlaylist(): boolean {
         return this.playlists.length === this.playlistIndex + 1;

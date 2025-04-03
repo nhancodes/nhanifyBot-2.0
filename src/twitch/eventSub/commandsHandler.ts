@@ -24,7 +24,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     break;
                 }
                 case "NhanifyBot: Skip Playlist": {
-                    playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
+                    await playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");

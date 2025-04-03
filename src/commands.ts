@@ -63,7 +63,7 @@ export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>,
                 client.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
             });
             await rewards.setRewardsIsPause("chat");
-            nhanify.nextPlaylist();
+            await nhanify.nextPlaylist();
         } else if (!nhanifyQueue.isEmpty()) {
             Queue.setPlayingOn("nhanify");
             webSocketServerClients.forEach(client => {
@@ -86,11 +86,11 @@ export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue:
         Queue.setPlayingOn("chat");
         ws.send(JSON.stringify({ action: "play", queue: chatQueue.getQueue() }));
         //find the skiplaylist reward and set pause to true 
-        rewards.setRewardsIsPause("chat");
+        await rewards.setRewardsIsPause("chat");
     } else if (!nhanifyQueue.isEmpty()) {
         Queue.setPlayingOn("nhanify");
         ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
-        rewards.setRewardsIsPause("nhanify");
+        await rewards.setRewardsIsPause("nhanify");
     } else { // Queue is empty
         if (nhanify) {
             Queue.setPlayingOn("nhanify");
@@ -98,12 +98,12 @@ export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue:
             const { videos, title, creator } = config;
             nhanifyQueue.nextQueue({ type: "nhanify", title, creator, videos });
             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
-            rewards.setRewardsIsPause("nhanify");
+            await rewards.setRewardsIsPause("nhanify");
         } else {
             //configure: no nhanify playlists 
             Queue.setPlayingOn(null);
             ws.send(JSON.stringify({ action: "emptyQueues", queue: null }))
-            rewards.setRewardsIsPause("null");
+            await rewards.setRewardsIsPause("null");
         }
     }
 }

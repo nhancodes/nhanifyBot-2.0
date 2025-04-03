@@ -30,7 +30,7 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
             start = (performance.now() - start) / 1000;
             console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
             const eventObj = parseTwitchMessage(event.toString("utf8"));
-            handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue,nhanify);
+            await handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
         } catch (e) {
             console.error(e);
         }

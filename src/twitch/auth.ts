@@ -2,6 +2,10 @@ import auth from '../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import { Entity } from './eventSub/types.js';
 
+async function createAuthToken() {
+
+}
+
 export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
     try {
         const response = await fetch('https://id.twitch.tv/oauth2/validate', {
@@ -12,10 +16,10 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
         if (response.status === 200) {
             console.log(`${response.status}: Valid ${entity} token.`);
         } else if (response.status === 401 && body.message === "invalid access token") {
-            console.error(`${entity} : ${body}`);
+            console.error(`${entity} : ${JSON.stringify(body)}`);
             await updateAuth(entity, REFRESH_TWITCH_TOKEN);
         } else {
-            console.error(`${entity} : ${body}`);
+            console.error(`${entity} : ${JSON.stringify(body)}`);
         }
     } catch (e) {
         console.error(e);
@@ -36,8 +40,8 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
             }
             writeFileSync("./src/auth.json", JSON.stringify(auth));
             console.log(`Wrote ${entity} token to json`);
-        } else {
-            console.error(result);
+        } else if (result.type === "error") {
+            console.error(JSON.stringify(result.body));
         }
     } catch (e) {
         console.error(e);

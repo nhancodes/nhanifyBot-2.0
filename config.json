@@ -2,7 +2,9 @@
      "NHANIFY": {
           "enabled": true,
           "playlistsById": [
-               123
+               16,
+               7,
+               15
           ]
      },
      "ONLYBROADCASTER": {

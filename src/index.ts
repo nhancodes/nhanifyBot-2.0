@@ -8,12 +8,12 @@ import { Queue } from './videoAPI/queue.js';
 import { ChatQueue, Nhanify, NhanifyQueue, YTVideo } from './videoAPI/types.js';
 import { getNhanifyRewards, rewards } from './twitch/api/reward.js';
 import { Commands, NhanifyConfig, OnlyBroadcasterType } from './configType.js';
+import { Config } from './videoAPI/nhanify/dataAPI.js';
 const { NHANIFY } = config as { "NHANIFY": NhanifyConfig; "ONLYBROADCASTER": OnlyBroadcasterType; "COMMANDS": Commands };
 const EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
 const IRC_WEBSOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443';
 //const EVENTSUB_WEBSOCKET_URL = 'ws://0.0.0.0:8090/ws';
 const chatQueue = new Queue({ type: "chat", videos: [] } as ChatQueue);
-type Config = { nhanify: Nhanify, queue: NhanifyQueue };
 await authenticateTwitchToken('bot', auth.BOT_TWITCH_TOKEN, auth.BOT_REFRESH_TWITCH_TOKEN);
 await authenticateTwitchToken('broadcaster', auth.TWITCH_TOKEN, auth.REFRESH_TWITCH_TOKEN);
 await getNhanifyRewards();
@@ -21,27 +21,21 @@ async function getNhanifyVideos(): Promise<Config> {
     if (NHANIFY.enabled) {
         try {
             const { nhanify } = await import('./videoAPI/nhanify/dataAPI.js');
-            NHANIFY.playlistsById.length === 0 ? await nhanify!.setPublicPlaylists() : await nhanify!.setPlaylistsById(NHANIFY.playlistsById);
+            if (nhanify) {
+                NHANIFY.playlistsById.length === 0 ? await nhanify.setPublicPlaylists() : await nhanify!.setPlaylistsById(NHANIFY.playlistsById);
 
-            if (nhanify?.playlists.length === 0) return { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config;
-
-            let videos: YTVideo[];
-            let creator: string;
-            let title: string;
-            do {
-                const { creator: c, title: t } = nhanify!.getPlaylist();
-                console.log("Title:", t);
-                creator = c;
-                title = t;
-                videos = await nhanify!.getSongs();
-                nhanify!.nextPlaylist();
-            } while (videos.length === 0 && nhanify!.isLastPlaylist());
-
-            return videos.length === 0 ? { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config : { nhanify, queue: { type: "nhanify", title, creator, videos } } as Config;
+                if (nhanify!.playlists.length === 0) return { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config;
+                const config = await nhanify.nextPlaylist();
+                const { videos, title, creator } = config;
+                return videos.length === 0 ? { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config : { nhanify, queue: { type: "nhanify", title, creator, videos } } as Config;
+            } else {
+                return { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config;
+            }
         } catch (err) {
             console.error('Failed to load module:', err)
             return { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config;
         }
+
     } else {
         return { nhanify: null, queue: { type: "nhanify", videos: [] } } as Config;
     }

@@ -20,10 +20,10 @@ export type Nhanify = {
     playlists: NhanifyPlaylist[]; // Assume `getPublicPlaylists()` resolves to this
     setPublicPlaylists(): Promise<void>;
     setPlaylistsById(playlistIds: number[]): Promise<void>;
-    nextPlaylist(): void;
+    nextPlaylist(): Promise<NhanifyQueue>;
     isLastPlaylist(): boolean;
     getPlaylist(): NhanifyPlaylist;
-    getSongs(): Promise<YTVideo[]>; // Assuming `songs` is an array of any type
+    getSongs(playlistId: number): Promise<YTVideo[]>; // Assuming `songs` is an array of any type
 } | null;
 export type ChatQueue = QueueType<'chat'>;
 export type NhanifyQueue = QueueType<'nhanify'>;

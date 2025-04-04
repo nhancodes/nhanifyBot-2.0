@@ -3,6 +3,7 @@ import {config} from '../../configType.js';
 //https://www.youtube.com/watch?v=_QkGAaYtXA0
 //https://youtu.be/_QkGAaYtXA0?si=swsvRGOx6nBab1Qh
 //https://m.youtube.com/watch?v=_QkGAaYtXA0
+//https://music.youtube.com/watch?v=Fp8msa5uYsc&list=RDAMVMFp8msa5uYsc
 export function isValidURL(URLInput: string): boolean {
   try {
     const { protocol, hostname, pathname, searchParams } = new URL(URLInput);
@@ -10,10 +11,11 @@ export function isValidURL(URLInput: string): boolean {
     if (protocol === "https:" || protocol === "http:") {
       if (
         (hostname === "www.youtube.com" && pathname === "/watch" && videoId) ||
+        (hostname === "music.youtube.com" && pathname === "/watch" && videoId) ||
         (hostname === "youtu.be" && pathname) ||
         (hostname === "m.youtube.com" && pathname === "/watch" && videoId)
       )
-        return true;
+      return true;
     }
     return false;
   } catch (error) {

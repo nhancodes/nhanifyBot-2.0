@@ -1,10 +1,7 @@
 {
      "NHANIFY": {
           "enabled": true,
-          "playlistsById": [
-               16,
-               7,
-               15
+          "playlistsById": [     
           ]
      },
      "ONLYBROADCASTER": {

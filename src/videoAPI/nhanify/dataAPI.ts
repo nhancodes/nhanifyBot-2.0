@@ -18,47 +18,29 @@ export const nhanify: Nhanify = {
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async nextPlaylist(): Promise<NhanifyQueue> {
-        /* let videos: YTVideo[];
-         let creator: string;
-         let title: string;
-         do {
-             const playlist = this.getPlaylist();
-             creator = playlist.creator;
-             title = playlist.title;
-             videos = await this.getSongs(playlist.id);
- 
-             console.log("IN DO WHILE: Title", title, "VideosLength", videos.length);
- 
-             //this.getSongs()
-             this.playlistIndex += 1;
-             console.log("THE LAST PLAYLIST", this.isLastPlaylist());
-         } while (videos.length === 0 && !this.isLastPlaylist());
-         return { type: "nhanify", videos, creator, title }
-         */
-        // have the length of the current playlist 
-        let playlist = this.getPlaylist();
-        let videos = await this.getSongs(playlist.id);
-        let playlistLength = videos.length;
-        let creator = playlist.creator;
-        let title = playlist.title;
-        while (playlistLength === 0 && !this.isLastPlaylist()) {
-            playlist = this.getPlaylist();
+        let playlistLength : number = 0;
+        let creator : string = "";
+        let title : string = "";
+        let videos: YTVideo []  = [];
+        let count = 1;
+        //console.log("IN NEXTPlAYLIST", count);
+        while (playlistLength === 0 && count <= this.playlists.length) { 
+            const playlist = this.getPlaylist();
+            //console.log({playlist});
             creator = playlist.creator;
             title = playlist.title;
             videos = await this.getSongs(playlist.id);
             playlistLength = videos.length;
             this.playlistIndex += 1;
+            count += 1;
         }
         return { type: "nhanify", videos, creator, title }
-    },
-    isLastPlaylist(): boolean {
-        return this.playlists.length === this.playlistIndex + 1;
     },
     getPlaylist(): NhanifyPlaylist {
         return this.playlists[this.playlistIndex % this.playlists.length]; //0 % 4 4 % 4
     },
     async getSongs(playlistId: number): Promise<YTVideo[]> {
-        //console.log("ID____", id);
+        //console.log("ID____", playlistId);
         const response = await fetch(`${auth.HOST}/api/playlists/${playlistId}`, {
             method: 'GET',
             headers: {

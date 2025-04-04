@@ -22,7 +22,6 @@ export type Nhanify = {
     setPublicPlaylists(): Promise<void>;
     setPlaylistsById(playlistIds: number[]): Promise<void>;
     nextPlaylist(): Promise<NhanifyQueue>;
-    isLastPlaylist(): boolean;
     getPlaylist(): NhanifyPlaylist;
     getSongs(playlistId: number): Promise<YTVideo[]>; // Assuming `songs` is an array of any type
 } | null;

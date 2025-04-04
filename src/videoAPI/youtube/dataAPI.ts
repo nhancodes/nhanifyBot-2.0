@@ -1,5 +1,5 @@
 import { YTVideo } from '../types.js';
-
+import {config} from '../../configType.js';
 //https://www.youtube.com/watch?v=_QkGAaYtXA0
 //https://youtu.be/_QkGAaYtXA0?si=swsvRGOx6nBab1Qh
 //https://m.youtube.com/watch?v=_QkGAaYtXA0
@@ -54,7 +54,7 @@ export async function getVideoById(videoId: string, YT_API_KEY: string): Promise
 
     if (embeddable === false) return { restriction: "notEmbeddable" };
 
-    if (convertSeconds(duration) > 600) return { restriction: "duration" };
+    if (convertSeconds(duration) > config.VIDEOMAXDURATION) return { restriction: "duration" };
 
     return {
       title: result.items[0].snippet.title,

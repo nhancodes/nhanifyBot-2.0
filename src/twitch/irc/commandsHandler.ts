@@ -7,9 +7,9 @@ import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
 import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
-import config from '../../../config.json' with {type: 'json'};
-import { OnlyBroadcasterType, NhanifyConfig, Commands, Env } from '../../configType.js'
-const { ONLYBROADCASTER, COMMANDS } = config as { "NHANIFY": NhanifyConfig; "ONLYBROADCASTER": OnlyBroadcasterType; "COMMANDS": Commands };
+//import config from '../../../config.json' with {type: 'json'};
+import {config, Env} from '../../configType.js'
+const { ONLYBROADCASTER, COMMANDS } = config ;
 const commands: Env = COMMANDS[auth.ENV];
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {

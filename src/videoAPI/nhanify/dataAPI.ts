@@ -1,11 +1,6 @@
-//for nhanify
-//update add song to invalidate videos that can't be play on the player
-//when loading the playlist check all songs to see if they still exist if not render the song grey and have the player skip the song
-
 import auth from '../../auth.json' with {type: 'json'};
-import { Queue } from '../queue.js';
 import { Nhanify, NhanifyPlaylist, NhanifyQueue, PlaylistAPI, YTVideo } from '../types.js';
-export type Config = { nhanify: Nhanify, queue: NhanifyQueue };
+import {config} from '../../configType.js';
 export const nhanify: Nhanify = {
     playlistIndex: 0,
     playlists: [],
@@ -36,6 +31,7 @@ export const nhanify: Nhanify = {
         }
         return { type: "nhanify", videos, creator, title }
     },
+
     getPlaylist(): NhanifyPlaylist {
         return this.playlists[this.playlistIndex % this.playlists.length]; //0 % 4 4 % 4
     },
@@ -52,7 +48,7 @@ export const nhanify: Nhanify = {
         const playlist: { songs: { durationSec: number }[] } = await response.json();
         //console.log("SONGS IN PLAYLIST____", playlist);
         //console.log("SONGS IN PLAYLIST____", playlist.songs);
-        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= 600);
+        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= config.VIDEOMAXDURATION);
         if (filterPlaylists.length > 0) return shuffleItems(filterPlaylists as YTVideo[]);
         return [];
     },

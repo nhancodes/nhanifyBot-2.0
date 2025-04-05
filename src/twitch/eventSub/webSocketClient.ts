@@ -15,7 +15,17 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
         console.error
     });
 
-    let start = 0;
+    let start: number = 0;
+    const interval = 30000;
+    const messageTimeStamp = { last: Date.now() };
+    const id = setInterval(() => {
+        if (messageTimeStamp.last + interval < Date.now()) {
+            console.log("RESTART THE SERVER AND EVENT SUB");
+            console.log(messageTimeStamp.last + interval, "THE CURRENT TIME", Date.now())
+        } else {
+            console.log(Date.now() - messageTimeStamp.last);
+        }
+    }, interval);
     websocketClient.on('open', () => {
         console.log('WebSocket connection opened to ' + EVENTSUB_WEBSOCKET_URL);
     });
@@ -28,9 +38,9 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
     websocketClient.on('message', async (event: Buffer) => {
         try {
             start = (performance.now() - start) / 1000;
-            console.log("TIME FROM LAST MESSAGE IN SECONDS", start);
             const eventObj = parseTwitchMessage(event.toString("utf8"));
-            await handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
+            console.log("TIME FROM LAST MESSAGE IN SECONDS", start, eventObj.message_type);
+            await handleWebSocketMessage(websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify, messageTimeStamp);
         } catch (e) {
             console.error(e);
         }
@@ -47,7 +57,8 @@ function parseTwitchMessage(jsonString: string): Message {
     } as Message;
 }
 
-export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
+export async function handleWebSocketMessage(websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify, messageTimeStamp: { last: number; }) {
+    let lastMessageTimeStamp: number = 0;
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             if (websocketClients.length === 1) {
@@ -63,6 +74,12 @@ export async function handleWebSocketMessage(websocketClients: WebSocket[], data
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
             const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
             await commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
+            messageTimeStamp.last = Date.now();
+            console.log("IN NOTIFICATION", messageTimeStamp.last);
+            break;
+        case 'session_keepalive':
+            messageTimeStamp.last = Date.now();
+            console.log("IN KEEPALIVE", messageTimeStamp.last);
             break;
     }
 }

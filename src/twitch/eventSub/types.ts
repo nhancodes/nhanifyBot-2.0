@@ -47,7 +47,7 @@ type MessageBase<MessageType extends string, Metadata, Payload> = {
   payload: Payload;
 };
 
-export type Message = MessageBase<'session_welcome', MetadataBase, { session: SessionBase<'connected'> }> | MessageBase<'session_reconnect', MetadataBase, { session: SessionBase<'reconnecting'> }> | MessageBase<'notification', MetadataNotificationMessage, { subscription: Subscription; event: RewardRedeemEvent }>;
+export type Message = MessageBase<'session_welcome', MetadataBase, { session: SessionBase<'connected'> }> | MessageBase<'session_reconnect', MetadataBase, { session: SessionBase<'reconnecting'> }> | MessageBase<'notification', MetadataNotificationMessage, { subscription: Subscription; event: RewardRedeemEvent }> | MessageBase<'session_keepalive', MetadataBase, {}>;
 
 type SubscriptionBase<SubscriptionType extends string> = {
   subscription_type: SubscriptionType;

@@ -22,6 +22,14 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
         )
         if (chatter) ircCommand.setChatter(chatter);
         switch (commandKey) {
+            case "playlist":
+                if (Queue.getPlayingOn() === "nhanify" && Queue.getIsPlaying()) {
+                    const id  = nhanifyQueue.getQueue().id;
+                    client.send(`PRIVMSG ${channel} : @${chatter}, ${auth.HOST}/public/playlists/1/playlist/1/${id}`);
+                } else {
+                    client.send(`PRIVMSG ${channel} : @${chatter}, no playlist from Nhanify is currently playing.`);
+                }
+                break;
             case "aboutNhanify":
                 client.send(`PRIVMSG ${channel} : @${chatter}, https://www.youtube.com/shorts/d6Uwh81MoKM`);
                 break;

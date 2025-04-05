@@ -10,6 +10,7 @@ export type NhanifyPlaylist = { id: number; title: string, creator: string };
 
 type QueueType<Type extends string> = {
     type: Type;
+    id?: number;
     title?: string;
     creator?: string;
     length?: number;

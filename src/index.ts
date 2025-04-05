@@ -27,8 +27,8 @@ async function getNhanifyVideos(): Promise<PlaylistsConfig> {
                 if (nhanify!.playlists.length === 0) return { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig;
 
                 const playlistsConfig = await nhanify.nextPlaylist();
-                const { videos, title, creator } = playlistsConfig;
-                return videos.length === 0 ? { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig : { nhanify, queue: { type: "nhanify", title, creator, videos } } as PlaylistsConfig;
+                const { videos, title, creator, id } = playlistsConfig;
+                return videos.length === 0 ? { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig : { nhanify, queue: { type: "nhanify", id, title, creator, videos } } as PlaylistsConfig;
             } else {
                 return { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig;
             }

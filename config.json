@@ -23,14 +23,15 @@
      "COMMANDS": {
           "prod": {
                "songRequest": "sr",
-               "skipSong": "sks",
-               "skipPlaylist": "skp",
-               "saveSong": "svs",
-               "playingSong": "s",
-               "pauseSong": "ps",
-               "resumeSong": "rs",
+               "skipSong": "skipSong",
+               "skipPlaylist": "skipPlaylist",
+               "saveSong": "saveSong",
+               "playingSong": "song",
+               "pauseSong": "pause",
+               "resumeSong": "resume",
                "commands": "commands",
-               "aboutNhanify": "nhanify"
+               "aboutNhanify": "nhanify",
+               "playlist": "playlist"
           },
           "dev": {
                "songRequest": "devsr",
@@ -41,7 +42,8 @@
                "pauseSong": "devps",
                "resumeSong": "devrs",
                "commands": "devcommands",
-               "aboutNhanify": "devnhanify"
+               "aboutNhanify": "devnhanify",
+               "playlist": "devplaylist"
           }
      }
 }

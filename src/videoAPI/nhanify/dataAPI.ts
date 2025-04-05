@@ -18,18 +18,20 @@ export const nhanify: Nhanify = {
         let title : string = "";
         let videos: YTVideo []  = [];
         let count = 1;
+        let id = 0;
         //console.log("IN NEXTPlAYLIST", count);
         while (playlistLength === 0 && count <= this.playlists.length) { 
             const playlist = this.getPlaylist();
             //console.log({playlist});
             creator = playlist.creator;
             title = playlist.title;
+            id = playlist.id;
             videos = await this.getSongs(playlist.id);
             playlistLength = videos.length;
             this.playlistIndex += 1;
             count += 1;
         }
-        return { type: "nhanify", videos, creator, title }
+        return { type: "nhanify", id, videos, creator, title }
     },
 
     getPlaylist(): NhanifyPlaylist {

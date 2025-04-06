@@ -7,24 +7,19 @@ import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 
 export async function startTwitchEventSubWebSocketClient(KEEPALIVE_INTERVAL_MS: number, EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
-    const websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
+    let isConnected = true;
+    let websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
     const websocketClient = websocketClients[0];
     console.log(`${EVENTSUB_WEBSOCKET_URL} Websocket client created`);
     websocketClient.on('error', (error) => {
         console.log(`${EVENTSUB_WEBSOCKET_URL} errors: ${error.toString()}`);
     });
-
-    const messageTimeStamp = { last: Date.now() };
     const id = setInterval(async () => {
-        const endTime: number = Date.now();
-        const startTime: number = endTime - KEEPALIVE_INTERVAL_MS;
-        if (messageTimeStamp.last > startTime && messageTimeStamp.last <= endTime) {
-            //console.log(`MESSAGE RECIEVED IN TIME: ${startTime} - ${messageTimeStamp.last} - ${endTime}`);
-            console.log("MESSAGE RECIEVED IN TIME: ", endTime - messageTimeStamp.last);
-        } else {
-            console.log("MESSAGE RECIEVED NOT IN TIME: ", endTime - messageTimeStamp.last);
-            //console.log(`RESTART THE SERVER AND EVENT SUB: ${startTime} - ${messageTimeStamp.last} - ${endTime}`);
-            await startTwitchEventSubWebSocketClient(KEEPALIVE_INTERVAL_MS, EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
+        console.log({isConnected});
+        if(!isConnected) {
+            websocketClients = [new WebSocket(EVENTSUB_WEBSOCKET_URL)];
+            isConnected = true;
+            console.log({isConnected, websocketClients});
         }
     }, KEEPALIVE_INTERVAL_MS);
     websocketClient.on('open', () => {
@@ -32,13 +27,14 @@ export async function startTwitchEventSubWebSocketClient(KEEPALIVE_INTERVAL_MS: 
     });
 
     websocketClient.on('close', () => {
+        isConnected = false;
         console.log('WebSocket connection closed on ' + EVENTSUB_WEBSOCKET_URL);
     });
 
     websocketClient.on('message', async (event: Buffer) => {
         try {
             const eventObj = parseTwitchMessage(event.toString("utf8"));
-            await handleWebSocketMessage(KEEPALIVE_INTERVAL_MS, websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify, messageTimeStamp);
+            await handleWebSocketMessage(KEEPALIVE_INTERVAL_MS, websocketClients, eventObj, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
         } catch (e) {
             console.error(e);
         }
@@ -55,12 +51,10 @@ function parseTwitchMessage(jsonString: string): Message {
     } as Message;
 }
 
-export async function handleWebSocketMessage(KEEPALIVE_INTERVAL_MS: number, websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify, messageTimeStamp: { last: number; }) {
+export async function handleWebSocketMessage(KEEPALIVE_INTERVAL_MS: number, websocketClients: WebSocket[], data: Message, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
     //console.log("TYPE", data.message_type);
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
-            messageTimeStamp.last = Date.now();
-            console.log("In welcome: ", messageTimeStamp.last);
             if (websocketClients.length === 1) {
                 await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.TWITCH_TOKEN);
             }
@@ -69,17 +63,11 @@ export async function handleWebSocketMessage(KEEPALIVE_INTERVAL_MS: number, webs
             }
             break;
         case 'session_reconnect':
-            websocketClients.push(await startTwitchEventSubWebSocketClient(KEEPALIVE_INTERVAL_MS, data.payload.session.reconnect_url, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify));
+            websocketClients.push(new WebSocket(data.payload.session.reconnect_url));
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
-            messageTimeStamp.last = Date.now();
-            console.log("In notification: ", messageTimeStamp.last);
             const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
             await commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
-            break;
-        case 'session_keepalive':
-            messageTimeStamp.last = Date.now();
-            console.log("In keepalive: ", messageTimeStamp.last);
             break;
     }
 }

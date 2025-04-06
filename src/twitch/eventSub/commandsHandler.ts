@@ -11,7 +11,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
             const title = parsedSubscription.reward.title;
             const chatter = ircCommand.getChatter();
             switch (title) {
-                case "NhanifyBot: Skip Song": {
+                case "Nhanify: Skip Song": {
                     //ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : !skipSong`);
                     await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
@@ -23,7 +23,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     }
                     break;
                 }
-                case "NhanifyBot: Skip Playlist": {
+                case "Nhanify: Skip Playlist": {
                     await playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {

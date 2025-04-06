@@ -1,7 +1,6 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import rewardsConfig from './rewards.json' with {type: 'json'};
-import { RewardRedeemEvent } from '../eventSub/types.js';
 type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
 type State = { [key: string]: boolean };
 const REWARDS = rewardsConfig.REWARDS as RewardJson[];

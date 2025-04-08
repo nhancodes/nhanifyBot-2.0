@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "nhanifybot-2.0": "file:",
+    "open": "^10.1.0",
     "ws": "^8.18.0"
   }
 }

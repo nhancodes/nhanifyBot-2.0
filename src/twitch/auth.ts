@@ -1,11 +1,8 @@
 import auth from '../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import { Entity } from './eventSub/types.js';
-
-async function createAuthToken() {
-
-}
-
+import open from 'open';
+import { tokenPromise } from '../server/webServer.js';
 export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
     try {
         const response = await fetch('https://id.twitch.tv/oauth2/validate', {
@@ -17,7 +14,8 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             console.log(`${response.status}: Valid ${entity} token.`);
         } else if (response.status === 401 && body.message === "invalid access token") {
             console.error(`${entity} : ${JSON.stringify(body)}`);
-            await updateAuth(entity, REFRESH_TWITCH_TOKEN);
+            const result =  await updateAuth(entity, REFRESH_TWITCH_TOKEN);
+            return result;
         } else {
             console.error(`${entity} : ${JSON.stringify(body)}`);
         }
@@ -43,6 +41,7 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         } else if (result.type === "error") {
             console.error(JSON.stringify(result.body));
         }
+        return result;
     } catch (e) {
         console.error(e);
     }
@@ -65,6 +64,14 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         if (response.status === 200) {
             console.log(`${response.status}: Refresh ${entity} token.`);
             return { type: "data", body };
+        } 
+        if (response.status === 400) {
+            //open default browser to with the url 
+            console.log("_____________________________________IN 400_______________________________________");
+            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=${auth.REDIRECT_URI}&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671&nonce=c3ab8aa609ea11e793ae92361f002671`;
+            await open(url);
+            const result = await tokenPromise as {type: string; body: {access_token: string; refresh_token: string}};
+            return result;
         }
         return { type: "error", body };
     } catch (e) {

@@ -3,6 +3,7 @@ import auth from '../../auth.json' with {type: 'json'};
 import { updateAuth } from '../auth.js';
 import { Entity } from './types.js';
 
+// put a limit of only 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
     try {
         let response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
@@ -35,12 +36,12 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
     } catch (e: any) {
         if (e.message === "401: Failed to subscribe") {
             console.error(e.message);
-            if (entity === 'bot') {
-                await updateAuth(entity, auth.BOT_REFRESH_TWITCH_TOKEN);
-            } else {
-                await updateAuth(entity, auth.REFRESH_TWITCH_TOKEN);
-            }
-            registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
+            const result = await updateAuth('broadcaster', auth.REFRESH_TWITCH_TOKEN);
+            //update the broadcaster token 
+            if (result && result.type === "data") {
+                //if success register again
+                registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
+            } 
         } else {
             console.error(e);
         }

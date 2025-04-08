@@ -5,9 +5,56 @@ import auth from '../auth.json' with {type: 'json'};
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
-
+let resolveCodePromise: (result: {type: string; body: {access_token: string; refresh_token: string}}) => void; 
+const tokenPromise = new Promise((resolve) => {
+    resolveCodePromise = resolve;
+});
 // Create an HTTP server
-export const webServer = http.createServer((req: IncomingMessage, res: ServerResponse) => {
+export const webServer = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+
+    const url = new URL(req.url!, auth.REDIRECT_URI);
+    console.log({url});
+    if (url.pathname === '/favicon.ico') {
+        res.writeHead(204);
+        return res.end();
+    }
+    if (url.pathname === '/') {
+        const code = url.searchParams.get('code');
+        console.log("IN HTTP SERVER", code);
+        if (code) {
+            const payload: {[key:string]: string} = {
+                client_id: auth.CLIENT_ID,
+                client_secret: auth.CLIENT_SECRET,
+                code: code,
+                grant_type: "authorization_code",
+                redirect_uri: auth.REDIRECT_URI,
+              };
+              const response = await fetch("https://id.twitch.tv/oauth2/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(payload).toString(),
+              });
+              const body = await response.json() as {access_token: string; refresh_token: string}
+              console.log({body});
+              if (response.ok) {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end('<h1>Auth successful</h1><p>You can close this window.</p>');
+                resolveCodePromise({ type: "data", body });
+                return;
+              } else {
+                res.writeHead(400, { 'Content-Type': 'text/html' });
+                res.end('<h1>Auth successful</h1><p>Bad Request.</p>');
+                resolveCodePromise({ type: "error", body });
+                return;
+              }
+        } else {
+            res.writeHead(400);
+            res.end('Missing code');
+            return;
+
+        }
+    } 
+
     // Set the file path based on the requested URL
     let filePath = req.url === '/' ? INDEX_FILE : path.join(PUBLIC_DIR, req.url || '');
 
@@ -53,9 +100,11 @@ export const webServer = http.createServer((req: IncomingMessage, res: ServerRes
             res.end(data);
         });
     });
+    
 });
 
 // Start the server and listen on the specified port
 webServer.listen(auth.WEB_SERVER_PORT, () => {
     console.log(`Server running at http://localhost:${auth.WEB_SERVER_PORT}`);
 });
+export {tokenPromise}

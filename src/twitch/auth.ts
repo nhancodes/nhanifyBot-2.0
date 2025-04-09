@@ -14,7 +14,7 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             console.log(`${response.status}: Valid ${entity} token.`);
         } else if (response.status === 401 && body.message === "invalid access token") {
             console.error(`${entity} : ${JSON.stringify(body)}`);
-            const result =  await updateAuth(entity, REFRESH_TWITCH_TOKEN);
+            const result = await updateAuth(entity, REFRESH_TWITCH_TOKEN);
             return result;
         } else {
             console.error(`${entity} : ${JSON.stringify(body)}`);
@@ -24,7 +24,7 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
     }
 }
 
-export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
+export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): Promise<{ type: string; body: { [key: string]: string } }> {
     try {
         let result = await refreshAuthToken(entity, REFRESH_TWITCH_TOKEN);
         if (result.type === "data") {
@@ -44,6 +44,7 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         return result;
     } catch (e) {
         console.error(e);
+        return { type: "error", body: { message: "Something went wrong when refreshing token" } };
     }
 }
 
@@ -64,13 +65,13 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         if (response.status === 200) {
             console.log(`${response.status}: Refresh ${entity} token.`);
             return { type: "data", body };
-        } 
+        }
         if (response.status === 400) {
             //open default browser to with the url 
             console.log("_____________________________________IN 400_______________________________________");
-            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=${auth.REDIRECT_URI}&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671&nonce=c3ab8aa609ea11e793ae92361f002671`;
+            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=${auth.REDIRECT_URI}&force_verify=true&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671&nonce=c3ab8aa609ea11e793ae92361f002671`;
             await open(url);
-            const result = await tokenPromise as {type: string; body: {access_token: string; refresh_token: string}};
+            const result = await tokenPromise as { type: string; body: { access_token: string; refresh_token: string } };
             return result;
         }
         return { type: "error", body };

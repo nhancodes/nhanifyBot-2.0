@@ -1,6 +1,7 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import rewardsConfig from './rewards.json' with {type: 'json'};
+import { updateAuth } from '../auth.js';
 type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
 type State = { [key: string]: boolean };
 const REWARDS = rewardsConfig.REWARDS as RewardJson[];
@@ -88,10 +89,10 @@ class Rewards {
         // get all result from promises
         const updatedRewards = await Promise.all(updatePromises);
         updatedRewards.forEach(reward => {
-            if (reward.type === "success") {
-                console.log(`${reward.type}: ${reward.result.title} is ${reward.result.is_paused ? "paused" : "resumed"}`)
+            if (reward!.type === "success") {
+                console.log(`${reward!.type}: ${reward!.result.title} is ${reward!.result.is_paused ? "paused" : "resumed"}`)
             } else {
-                console.log(`${reward.type}: ${reward.result.error}`);
+                console.log(`${reward!.type}: ${reward!.result.error}`);
             }
         });
     }
@@ -138,12 +139,15 @@ class Reward {
                     'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status})
+                body: JSON.stringify({ status })
             }
         )
         const result = await response.json();
         if (response.ok) {
             return { type: "success", result: result.data[0] }
+        } else if (response.status === 401) {
+            const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+            if (result.type === 'error') console.log(JSON.stringify(result.body))
         } else {
             return { type: "error", result };
         }
@@ -166,6 +170,9 @@ class Reward {
         if (response.ok) {
             this.reward.is_paused = result.data[0].is_paused;
             return { type: "success", result: result.data[0] }
+        } else if (response.status === 401) {
+            const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+            if (result.type === 'error') console.log(JSON.stringify(result.body))
         } else {
             return { type: "error", result };
         }
@@ -186,7 +193,14 @@ async function getRewardFromTwitch(reward: ConfigReward) {
         }
     )
     const result = await response.json();
-    return response.ok ? { type: "success", result: result.data[0] } : { type: "error", result: { reward, result } };
+    if (response.ok) {
+        return { type: "success", result: result.data[0] }
+    } else if (response.status === 401) {
+        const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+        if (result.type === 'error') console.log(JSON.stringify(result.body))
+    } else {
+        return { type: "error", result: { reward, result } }
+    };
 }
 
 async function createReward(reward: ConfigReward) {
@@ -210,7 +224,14 @@ async function createReward(reward: ConfigReward) {
         }
     )
     const result = await response.json();
-    return response.ok ? { type: "success", result: result.data[0] } : { type: "error", result };
+    if (response.ok) {
+        return { type: "success", result: result.data[0] }
+    } else if (response.status === 401) {
+        const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+        if (result.type === 'error') console.log(JSON.stringify(result.body))
+    } else {
+        return { type: "error", result: { reward, result } }
+    };
 }
 
 type ConfigReward = { id: string; title: string; cost: number }
@@ -220,30 +241,30 @@ async function getNhanifyRewards() {
         return getRewardFromTwitch(reward);
     });
     const rewardsTwitch = await Promise.all(promises);
-    const errors = rewardsTwitch.filter(rewards => rewards.type === "error");
-    const foundSuccesses = rewardsTwitch.filter(rewards => rewards.type === "success");
+    const errors = rewardsTwitch.filter(rewards => rewards!.type === "error");
+    const foundSuccesses = rewardsTwitch.filter(rewards => rewards!.type === "success");
     rewardsTwitch.forEach(response => {
-        if (response.type === "error") {
-            console.log(`${response.result.reward.title} reward not found.`)
-        } else if (response.type === "success") {
-            console.log(`${response.result.title} reward found.`)
+        if (response!.type === "error") {
+            console.log(`${response!.result.reward.title} reward not found.`)
+        } else if (response!.type === "success") {
+            console.log(`${response!.result.title} reward found.`)
         }
     });
     const createPromises = errors.map(error => {
-        return createReward(error.result.reward);
+        return createReward(error!.result.reward);
     });
     const createdRewardsTwitch = await Promise.all(createPromises);
     createdRewardsTwitch.forEach(response => {
-        if (response.type === "error") {
-            console.log(`${response.result.title} reward not created.`)
-        } else if (response.type === "success") {
-            console.log(`${response.result.title} reward created.`)
+        if (response!.type === "error") {
+            console.log(`${response!.result.title} reward not created.`)
+        } else if (response!.type === "success") {
+            console.log(`${response!.result.title} reward created.`)
         }
     });
-    const createdSuccesses = [...foundSuccesses, ...createdRewardsTwitch].filter(reward => reward.type === "success");
+    const createdSuccesses = [...foundSuccesses, ...createdRewardsTwitch].filter(reward => reward!.type === "success");
     createdSuccesses.forEach(success => {
-        rewards.addReward(new Reward(success.result))
-        console.log(`${success.result.title} reward instance was created and added to rewards class.`)
+        rewards.addReward(new Reward(success!.result))
+        console.log(`${success!.result.title} reward instance was created and added to rewards class.`)
     });
     if (errors.length > 0) writeFileSync("./src/twitch/api/rewards.json", JSON.stringify(rewards.getJsonConfig()));
 }

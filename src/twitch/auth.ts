@@ -49,6 +49,7 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): 
 }
 
 async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
+    const userId = entity === 'bot' ? auth.BOT_ID : auth.BROADCASTER_ID;
     const payload = {
         "grant_type": "refresh_token",
         "refresh_token": REFRESH_TWITCH_TOKEN,
@@ -69,7 +70,7 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         if (response.status === 400) {
             //open default browser to with the url 
             console.log("_____________________________________IN 400_______________________________________");
-            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=${auth.REDIRECT_URI}&force_verify=true&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671&nonce=c3ab8aa609ea11e793ae92361f002671`;
+            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671:${userId}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
             await open(url);
             const result = await tokenPromise as { type: string; body: { access_token: string; refresh_token: string } };
             return result;

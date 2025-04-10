@@ -2,7 +2,7 @@ import auth from '../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import { Entity } from './eventSub/types.js';
 import open from 'open';
-import { tokenPromise } from '../server/webServer.js';
+import { tokenPromiseBot, tokenPromiseBroadcaster } from '../server/webServer.js';
 export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
     try {
         const response = await fetch('https://id.twitch.tv/oauth2/validate', {
@@ -27,12 +27,16 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
 export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): Promise<{ type: string; body: { [key: string]: string } }> {
     try {
         let result = await refreshAuthToken(entity, REFRESH_TWITCH_TOKEN);
+        console.log(result.body.scope);
+        console.log({ entity });
         if (result.type === "data") {
             const { access_token, refresh_token } = result.body;
             if (entity === 'bot') {
+                console.log("CHANGING BOT")
                 auth.BOT_TWITCH_TOKEN = access_token;
                 auth.BOT_REFRESH_TWITCH_TOKEN = refresh_token;
             } else {
+                console.log("CHANGING BROACASTER")
                 auth.TWITCH_TOKEN = access_token;
                 auth.REFRESH_TWITCH_TOKEN = refresh_token;
             }
@@ -49,7 +53,9 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): 
 }
 
 async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
-    const userId = entity === 'bot' ? auth.BOT_ID : auth.BROADCASTER_ID;
+    const userId = entity === 'bot' ? auth.BOT_ID : auth.BROADCASTER_ID; // bot: 987698925, broadcaster: 972045178
+    const scope = entity === 'bot' ? 'chat:read+chat:edit' : 'channel:manage:redemptions+channel:read:redemptions';
+    console.log({ entity, userId });
     const payload = {
         "grant_type": "refresh_token",
         "refresh_token": REFRESH_TWITCH_TOKEN,
@@ -70,9 +76,18 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
         if (response.status === 400) {
             //open default browser to with the url 
             console.log("_____________________________________IN 400_______________________________________");
-            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671:${userId}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
+            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=${scope}&state=c3ab8aa609ea11e793ae92361f002671-${userId}-${scope}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
             await open(url);
-            const result = await tokenPromise as { type: string; body: { access_token: string; refresh_token: string } };
+            console.log("WAITING TO RESOLVED PROMISE");
+            let result;
+            if (entity === 'bot') {
+                result = await tokenPromiseBot as { type: string; body: { access_token: string; refresh_token: string } };
+            } else {
+                result = await tokenPromiseBroadcaster as { type: string; body: { access_token: string; refresh_token: string } };
+
+            }
+            console.log("RESOLVED PROMISE");
+
             return result;
         }
         return { type: "error", body };

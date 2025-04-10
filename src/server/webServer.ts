@@ -5,20 +5,32 @@ import auth from '../auth.json' with {type: 'json'};
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
-let resolveCodePromise: (result: { type: string; body: { access_token: string; refresh_token: string } }) => void;
-const tokenPromise = new Promise((resolve) => {
-    resolveCodePromise = resolve;
+
+let resolveCodePromiseBot: (result: { type: string; body: { access_token: string; refresh_token: string } }) => void;
+let tokenPromiseBot = new Promise((resolve) => {
+    resolveCodePromiseBot = resolve;
 });
+
+let resolveCodePromiseBroadcaster: (result: { type: string; body: { access_token: string; refresh_token: string } }) => void;
+let tokenPromiseBroadcaster = new Promise((resolve) => {
+    resolveCodePromiseBroadcaster = resolve;
+});
+
 // Create an HTTP server
 export const webServer = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+    /*tokenPromise = new Promise((resolve) => {
+        resolveCodePromise = resolve;
+    });
+    */
     //console.log(req);
-    console.log(req.url);
+    console.log("THE URL:", req.url);
     const url = new URL(req.url!, `http://${req.headers.host}`);
     const pathname = url.pathname;
     console.log({ pathname });
     let code = url.searchParams.get('code');
-    let userId = url.searchParams.get('state')?.split(':')[1];
-    console.log({ code, userId });
+    let userId = url.searchParams.get('state')?.split('-')[1];
+    let scope = url.searchParams.get('state')?.split('-')[2];
+    console.log({ code, userId, scope });
     if (url.pathname === '/favicon.ico') {
         res.writeHead(204);
         return res.end();
@@ -42,7 +54,7 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams(payload).toString(),
             });
-            const body = await response.json() as { access_token: string; refresh_token: string }
+            const body = await response.json() as { access_token: string; refresh_token: string; scope: string[] }
             //console.log({ body });
             if (response.ok) {
                 try {
@@ -51,10 +63,14 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                         headers: { 'Authorization': 'OAuth ' + body.access_token }//not long valid
                     });
                     const authBody = await response.json();
-                    //console.log({ body, userId });
+                    console.log("scope", body.scope, { userId });
 
                     if (authBody.user_id === userId) {
-                        resolveCodePromise({ type: "data", body });
+                        if (scope === 'chat:read chat:edit') {
+                            resolveCodePromiseBot({ type: "data", body });
+                        } else {
+                            resolveCodePromiseBroadcaster({ type: "data", body });
+                        }
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         return res.end('<h1>auth successful</h1><p>You can close this window.</p>');
                     } else {
@@ -70,11 +86,11 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                             <body>
                                 <script defer>
                                     if (window.confirm('Please authenticate with user id : ${userId}. Reauthenticate with the correct user id account?')) {
-                                        window.location.href = "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=channel:manage:redemptions+channel:read:redemptions&state=c3ab8aa609ea11e793ae92361f002671:${userId}&nonce=c3ab8aa609ea11e793ae92361f002671";
+                                        window.location.href = "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=${scope}&state=c3ab8aa609ea11e793ae92361f002671-${userId}-${scope}&nonce=c3ab8aa609ea11e793ae92361f002671";
 
                                     } else {
                                         const p = document.createElement("p");
-                                        p.textContent = "Sorry you gave up on the setup, hope you are able to try again some other time :(";
+                                        p.textContent = "Sorry you gave up on the setup, Hope you are able to try again some other time :(";
                                         document.body.appendChild(p);
                                     }
                                 </script>
@@ -87,7 +103,11 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                     return;
                 }
             } else {
-                resolveCodePromise({ type: "error", body });
+                if (scope === 'chat:read chat:edit') {
+                    resolveCodePromiseBot({ type: "error", body });
+                } else {
+                    resolveCodePromiseBroadcaster({ type: "error", body });
+                }
                 res.writeHead(400, { 'Content-Type': 'text/html' });
                 return res.end('<h1>Auth successful</h1><p>Bad Request.</p>');
             }
@@ -148,4 +168,4 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
 webServer.listen(auth.WEB_SERVER_PORT, () => {
     console.log(`Server running at http://localhost:${auth.WEB_SERVER_PORT}`);
 });
-export { tokenPromise }
+export { tokenPromiseBot, tokenPromiseBroadcaster }

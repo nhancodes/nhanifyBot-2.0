@@ -37,8 +37,8 @@ export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): 
                 auth.BOT_REFRESH_TWITCH_TOKEN = refresh_token;
             } else {
                 console.log("CHANGING BROACASTER")
-                auth.TWITCH_TOKEN = access_token;
-                auth.REFRESH_TWITCH_TOKEN = refresh_token;
+                auth.BROADCASTER_TWITCH_TOKEN = access_token;
+                auth.BROADCASTER_REFRESH_TWITCH_TOKEN = refresh_token;
             }
             writeFileSync("./src/auth.json", JSON.stringify(auth));
             console.log(`Wrote ${entity} token to json`);

@@ -14,7 +14,7 @@ const IRC_WEBSOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443';
 //const EVENTSUB_WEBSOCKET_URL = 'ws://0.0.0.0:8090/ws';
 const chatQueue = new Queue({ type: "chat", videos: [] } as ChatQueue);
 await authenticateTwitchToken('bot', auth.BOT_TWITCH_TOKEN, auth.BOT_REFRESH_TWITCH_TOKEN);
-await authenticateTwitchToken('broadcaster', auth.TWITCH_TOKEN, auth.REFRESH_TWITCH_TOKEN);
+await authenticateTwitchToken('broadcaster', auth.BROADCASTER_TWITCH_TOKEN, auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
 
 await getNhanifyRewards();
 async function getNhanifyVideos(): Promise<PlaylistsConfig> {

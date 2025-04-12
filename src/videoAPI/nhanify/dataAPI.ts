@@ -39,7 +39,7 @@ export const nhanify: Nhanify = {
     },
     async getSongs(playlistId: number): Promise<YTVideo[]> {
         //console.log("ID____", playlistId);
-        const response = await fetch(`${auth.HOST}/api/playlists/${playlistId}`, {
+        const response = await fetch(`${auth.NHANIFY_URL}/api/playlists/${playlistId}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
@@ -56,7 +56,7 @@ export const nhanify: Nhanify = {
 
 async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[]> {
     const queryParams = playlistsId.map(idValue => `id=${idValue}`).join('&');
-    const response = await fetch(`${auth.HOST}/api/playlists?${queryParams}`, {
+    const response = await fetch(`${auth.NHANIFY_URL}/api/playlists?${queryParams}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
@@ -82,7 +82,7 @@ async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[
 }
 
 async function getPublicPlaylists() {
-    const response = await fetch(`${auth.HOST}/api/playlists/public`, {
+    const response = await fetch(`${auth.NHANIFY_URL}/api/playlists/public`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,

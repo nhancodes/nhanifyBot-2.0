@@ -1,6 +1,6 @@
 {
      "NHANIFY": {
-          "enabled": true,
+          "enabled": false,
           "playlistsById": [     
           ]
      },

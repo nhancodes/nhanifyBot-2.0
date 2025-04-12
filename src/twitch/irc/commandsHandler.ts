@@ -7,7 +7,6 @@ import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
 import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
-//import config from '../../../config.json' with {type: 'json'};
 import {config, Env} from '../../configType.js'
 const { ONLYBROADCASTER, COMMANDS } = config ;
 const commands: Env = COMMANDS[auth.ENV];
@@ -112,7 +111,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 if (ONLYBROADCASTER.song) {
                     if (chatter !== auth.TWITCH_CHANNEL) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
-                if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, No song is currently playling.`);
+                if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, No song is currently playing.`);
                 const video = Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getFirst() : chatQueue.getFirst();
                 const msg = Queue.getIsPlaying() ? `${video?.title} -> https://www.youtube.com/watch?v=${video?.videoId}` : `No song is currently playing.`;
                 client.send(`PRIVMSG ${channel} : @${chatter}, ${msg}`);

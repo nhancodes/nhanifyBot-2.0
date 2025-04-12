@@ -6,10 +6,12 @@ export const nhanify: Nhanify = {
     playlists: [],
     async setPublicPlaylists() {
         this.playlists = await getPublicPlaylists();
+        if (this.playlists.length === 0) console.log("Public playlists were not found on Nhanify.");
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async setPlaylistsById(playlistIds: number[]) {
         this.playlists = await getPlaylistsById(playlistIds);
+        if (this.playlists.length === 0) console.log("None of the specified playlists were not found on Nhanify.");
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async nextPlaylist(): Promise<NhanifyQueue> {
@@ -19,10 +21,8 @@ export const nhanify: Nhanify = {
         let videos: YTVideo []  = [];
         let count = 1;
         let id = 0;
-        //console.log("IN NEXTPlAYLIST", count);
         while (playlistLength === 0 && count <= this.playlists.length) { 
             const playlist = this.getPlaylist();
-            //console.log({playlist});
             creator = playlist.creator;
             title = playlist.title;
             id = playlist.id;
@@ -48,8 +48,6 @@ export const nhanify: Nhanify = {
         });
 
         const playlist: { songs: { durationSec: number }[] } = await response.json();
-        //console.log("SONGS IN PLAYLIST____", playlist);
-        //console.log("SONGS IN PLAYLIST____", playlist.songs);
         const filterPlaylists = playlist.songs.filter(song => song.durationSec <= config.VIDEOMAXDURATION);
         if (filterPlaylists.length > 0) return shuffleItems(filterPlaylists as YTVideo[]);
         return [];
@@ -65,9 +63,12 @@ async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[
             'User-Id': auth.NHANCODES_ID,
         },
     });
-    if (!response.ok) return [];
-    const playlists: PlaylistAPI[] = (await response.json()).playlists;
-    console.log(playlists);
+    const result = await response.json();
+    if (!response.ok) {
+        console.log(`Unable to fetch playlists from Nhanify: ${result.error}`);
+        return [];
+    }
+    const playlists: PlaylistAPI[] = result.playlists;
     const filterPlaylists = playlists.filter(playlist => playlist.songCount > 0);
     const playlistsTrans = filterPlaylists.map((playlist) => {
         return {
@@ -77,7 +78,6 @@ async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[
         };
 
     });
-    console.log({ playlistsTrans });
     return playlistsTrans;
 }
 
@@ -90,7 +90,6 @@ async function getPublicPlaylists() {
         },
     });
     const result = await response.json();
-    //fitlter out playlist with 0 songs 
     const filteredPlaylists = result.playlists.filter((playlist: { songCount: number; }) => playlist.songCount > 0);
     const playlists = filteredPlaylists.map((playlist: { id: number; title: string; creator: { username: string; }; }) => {
         return {

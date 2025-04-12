@@ -2,10 +2,6 @@
      "NHANIFY": {
           "enabled": true,
           "playlistsById": [     
-          7, 
-          14, 
-          15, 
-          12
           ]
      },
      "VIDEOMAXDURATION": 700,

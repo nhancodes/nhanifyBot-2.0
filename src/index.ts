@@ -23,7 +23,6 @@ async function getNhanifyVideos(): Promise<PlaylistsConfig> {
             const { nhanify } = await import('./videoAPI/nhanify/dataAPI.js');
             if (nhanify) {
                 config.NHANIFY.playlistsById.length === 0 ? await nhanify.setPublicPlaylists() : await nhanify!.setPlaylistsById(config.NHANIFY.playlistsById);
-
                 if (nhanify!.playlists.length === 0) return { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig;
 
                 const playlistsConfig = await nhanify.nextPlaylist();

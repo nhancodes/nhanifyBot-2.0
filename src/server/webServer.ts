@@ -18,29 +18,20 @@ let tokenPromiseBroadcaster = new Promise((resolve) => {
 
 // Create an HTTP server
 export const webServer = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    /*tokenPromise = new Promise((resolve) => {
-        resolveCodePromise = resolve;
-    });
-    */
-    //console.log(req);
-    console.log("THE URL:", req.url);
     const url = new URL(req.url!, `http://${req.headers.host}`);
     const pathname = url.pathname;
-    console.log({ pathname });
     let code = url.searchParams.get('code');
     let userId = url.searchParams.get('state')?.split('-')[1];
     let scope = url.searchParams.get('state')?.split('-')[2];
-    console.log({ code, userId, scope });
     if (url.pathname === '/favicon.ico') {
         res.writeHead(204);
         return res.end();
     }
     if (pathname === '/' && code) {
-        console.log("auth request: ", code);
+        console.log("Twitch authentication code recieved.");
         return;
     }
     if (pathname === '/authorize') {
-        console.log("IN AUTHORIZE")
         if (code) {
             const payload: { [key: string]: string } = {
                 client_id: auth.CLIENT_ID,
@@ -55,7 +46,6 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                 body: new URLSearchParams(payload).toString(),
             });
             const body = await response.json() as { access_token: string; refresh_token: string; scope: string[] }
-            //console.log({ body });
             if (response.ok) {
                 try {
                     const response = await fetch('https://id.twitch.tv/oauth2/validate', {
@@ -63,7 +53,6 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                         headers: { 'Authorization': 'OAuth ' + body.access_token }//not long valid
                     });
                     const authBody = await response.json();
-                    console.log("scope", body.scope, { userId });
 
                     if (authBody.user_id === userId) {
                         if (scope === 'chat:read chat:edit') {
@@ -74,7 +63,6 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         return res.end('<h1>auth successful</h1><p>You can close this window.</p>');
                     } else {
-                        console.log("IN REAUTH");
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         return res.end(`
                             <!DOCTYPE html>
@@ -90,8 +78,11 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
 
                                     } else {
                                         const p = document.createElement("p");
-                                        p.textContent = "Sorry you gave up on the setup, Hope you are able to try again some other time :(";
-                                        document.body.appendChild(p);
+                                        const h1 = document.createElement("h1");
+                                        h1.textContent = "Sorry you gave up on the setup. :(";
+                                        p.textContent = "Hope you are able to try again some other time.";
+
+                                        document.body.appendChild(h1, p);
                                     }
                                 </script>
                             </body>
@@ -130,7 +121,6 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
     // Use fs.stat instead of fs.exists to check if the file exists
     fs.stat(filePath, (err, stats) => {
         if (err || !stats.isFile()) {
-            console.log("IN STATIC ASSETS");
             res.writeHead(404, { 'Content-Type': 'text/html' });
             return res.end('<h1>404 Not Found</h1>');
         }

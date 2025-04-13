@@ -43,12 +43,12 @@ export const nhanify: Nhanify = {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
-                'User-Id': auth.NHANCODES_ID,
+                'User-Id': auth.NHANIFY_ID,
             },
         });
 
         const playlist: { songs: { durationSec: number }[] } = await response.json();
-        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= config.VIDEOMAXDURATION);
+        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= config.VIDEO_MAX_DURATION);
         if (filterPlaylists.length > 0) return shuffleItems(filterPlaylists as YTVideo[]);
         return [];
     },
@@ -60,7 +60,7 @@ async function getPlaylistsById(playlistsId: number[]): Promise<NhanifyPlaylist[
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
-            'User-Id': auth.NHANCODES_ID,
+            'User-Id': auth.NHANIFY_ID,
         },
     });
     const result = await response.json();
@@ -86,7 +86,7 @@ async function getPublicPlaylists() {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
-            'User-Id': auth.NHANCODES_ID,
+            'User-Id': auth.NHANIFY_ID,
         },
     });
     const result = await response.json();

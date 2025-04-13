@@ -1,4 +1,6 @@
 src/auth.json
 node_modules
+config.json
+public/assets/overlayConfig.json
 src/twitch/api/rewards.json
 dist/

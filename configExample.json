@@ -4,7 +4,7 @@
           "playlistsById": [     
           ]
      },
-     "VIDEO_MAX_DURATION": 700,
+     "VIDEO_MAX_DURATION": 600,
      "ONLY_BROADCASTER": {
           "songRequest": false,
           "skipSong": true,

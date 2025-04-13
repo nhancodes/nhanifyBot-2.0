@@ -8,7 +8,7 @@ import { Rewards } from '../api/reward.js';
 import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
 import {config, Env} from '../../configType.js'
-const { ONLYBROADCASTER, COMMANDS } = config ;
+const { ONLY_BROADCASTER, COMMANDS } = config ;
 const commands: Env = COMMANDS[auth.ENV];
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
@@ -33,12 +33,12 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 client.send(`PRIVMSG ${channel} : @${chatter}, https://www.youtube.com/shorts/d6Uwh81MoKM`);
                 break;
             case "commands":
-                const chatCommands = Object.entries(commands).filter(command => !ONLYBROADCASTER[command[0]]);
+                const chatCommands = Object.entries(commands).filter(command => !ONLY_BROADCASTER[command[0]]);
                 const formattedCommands = chatCommands.map(command => `${command[0]}: !${command[1]}`).join(" | ");
                 client.send(`PRIVMSG ${channel} : @${chatter}, ${formattedCommands}`);
                 break;
             case "songRequest":
-                if (ONLYBROADCASTER.songRequest) {
+                if (ONLY_BROADCASTER.songRequest) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
                 const url = parsedMessage.command.botCommandParams ? parsedMessage.command.botCommandParams : "";
@@ -78,7 +78,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 }
                 break;
             case "resumeSong":
-                if (ONLYBROADCASTER.resumeSong) {
+                if (ONLY_BROADCASTER.resumeSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 if (Queue.getIsPlaying()) break;
@@ -90,7 +90,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 });
                 break;
             case "pauseSong":
-                if (ONLYBROADCASTER.pauseSong) {
+                if (ONLY_BROADCASTER.pauseSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 if (!Queue.getIsPlaying()) break;
@@ -102,13 +102,13 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 });
                 break;
             case "skipSong":
-                if (ONLYBROADCASTER.skipSong) {
+                if (ONLY_BROADCASTER.skipSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 playerSkipSong(webSocketServerClients, client, nhanifyQueue, chatQueue, chatter!, nhanify);
                 break;
             case "playingSong":
-                if (ONLYBROADCASTER.song) {
+                if (ONLY_BROADCASTER.song) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the broadcaster.`);
                 }
                 if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${channel} : @${chatter}, No song is currently playing.`);
@@ -117,13 +117,13 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 client.send(`PRIVMSG ${channel} : @${chatter}, ${msg}`);
                 break;
             case "skipPlaylist":
-                if (ONLYBROADCASTER.skipPlaylist) {
+                if (ONLY_BROADCASTER.skipPlaylist) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
                 playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!, chatQueue);
                 break;
             case "saveSong": {
-                if (ONLYBROADCASTER.saveSong) {
+                if (ONLY_BROADCASTER.saveSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
                 if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) return client.send(`PRIVMSG ${channel} : @${chatter}, No song playing to save.`);
@@ -140,7 +140,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,
-                            'User-Id': auth.NHANCODES_ID,
+                            'User-Id': auth.NHANIFY_ID,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(payload)

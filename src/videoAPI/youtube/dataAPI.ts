@@ -56,7 +56,7 @@ export async function getVideoById(videoId: string, YT_API_KEY: string): Promise
 
     if (embeddable === false) return { restriction: "notEmbeddable" };
 
-    if (convertSeconds(duration) > config.VIDEOMAXDURATION) return { restriction: "duration" };
+    if (convertSeconds(duration) > config.VIDEO_MAX_DURATION) return { restriction: "duration" };
 
     return {
       title: result.items[0].snippet.title,

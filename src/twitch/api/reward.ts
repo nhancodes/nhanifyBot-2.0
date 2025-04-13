@@ -1,17 +1,15 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
-import rewardsConfig from './rewards.json' with {type: 'json'};
+import {config} from '../../configType.js'; 
 import { updateAuth } from '../auth.js';
-type RewardJson = { id: string, title: string, cost: number, isPausedStates: State };
 type State = { [key: string]: boolean };
-const REWARDS = rewardsConfig.REWARDS as RewardJson[];
 
 function transformRewardsState(): { [key: string]: State } {
     const queueStates = ["chat", "nhanify", "null"];
     const result: { [key: string]: State } = {};
     queueStates.forEach(queueState => {
         const state: State = {};
-        REWARDS.forEach(reward => {
+        config.REWARDS.forEach(reward => {
             state[reward.title] = reward.isPausedStates[queueState];
         });
         result[queueState] = state;
@@ -99,7 +97,7 @@ class Rewards {
 
     getJsonConfig() {
         const result = this.getRewards().map((reward: RewardType) => {
-            const rewardFound = REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
+            const rewardFound = config.REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
             return { id: reward.id, title: reward.title, cost: reward.cost, isPausedStates: rewardFound?.isPausedStates };
         });
         return { REWARDS: result };
@@ -136,7 +134,7 @@ class Reward {
                 method: 'PATCH',
                 headers: {
                     'client-id': auth.CLIENT_ID,
-                    'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
+                    'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ status })
@@ -160,7 +158,7 @@ class Reward {
                 method: 'PATCH',
                 headers: {
                     'client-id': auth.CLIENT_ID,
-                    'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
+                    'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ is_paused: state })
@@ -187,7 +185,7 @@ async function getRewardFromTwitch(reward: ConfigReward) {
         {
             headers: {
                 'client-id': auth.CLIENT_ID,
-                'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
+                'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
             }
 
         }
@@ -211,7 +209,7 @@ async function createReward(reward: ConfigReward) {
             method: 'POST',
             headers: {
                 'client-id': auth.CLIENT_ID,
-                'Authorization': `Bearer ${auth.TWITCH_TOKEN}`,
+                'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -237,7 +235,7 @@ async function createReward(reward: ConfigReward) {
 type ConfigReward = { id: string; title: string; cost: number }
 
 async function getNhanifyRewards() {
-    const promises = REWARDS.map((reward: ConfigReward) => {
+    const promises = config.REWARDS.map((reward: ConfigReward) => {
         return getRewardFromTwitch(reward);
     });
     const rewardsTwitch = await Promise.all(promises);

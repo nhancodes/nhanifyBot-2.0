@@ -12,7 +12,6 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
             const chatter = ircCommand.getChatter();
             switch (title) {
                 case "Nhanify: Skip Song": {
-                    //ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : !skipSong`);
                     await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {

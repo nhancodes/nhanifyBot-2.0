@@ -36,7 +36,7 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
     } catch (e: any) {
         if (e.message === "401: Failed to subscribe") {
             console.error(e.message);
-            const result = await updateAuth('broadcaster', auth.REFRESH_TWITCH_TOKEN);
+            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
             //update the broadcaster token 
             if (result && result.type === "data") {
                 //if success register again

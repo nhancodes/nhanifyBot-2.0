@@ -22,8 +22,8 @@ export async function startTwitchIRCWebSocketClient(IRC_WEBSOCKET_URL: string, c
   client.on("open", async () => {
     console.log(`WebSocket connection opened to ${IRC_WEBSOCKET_URL}`);
     client.send(`PASS oauth:${auth.BOT_TWITCH_TOKEN}`);
-    client.send(`NICK ${auth.TWITCH_ACCOUNT}`);//nhanifybot
-    client.send(`JOIN #${auth.TWITCH_CHANNEL}`);//nhancodes
+    client.send(`NICK ${auth.BOT_NAME}`);
+    client.send(`JOIN #${auth.BROADCASTER_NAME}`);
   });
   client.on("message", async function (event: Buffer) {
     const message = event.toString('utf8').normalize("NFKC").replace(/\uDB40\uDC00/g, "").trim();

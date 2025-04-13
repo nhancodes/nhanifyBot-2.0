@@ -25,13 +25,13 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                         break;
                     case "pause":
                     case "resume":
-                        ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Player ${data.action}d.`);
+                        ircClient.send(`PRIVMSG #${auth.BROADCASTER_NAME} : Player ${data.action}d.`);
                         break;
                     case "skipSong":
-                        ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Skipped song.`);
+                        ircClient.send(`PRIVMSG #${auth.BROADCASTER_NAME} : Skipped song.`);
                         break;
                     case "skipPlaylist":
-                        ircClient.send(`PRIVMSG #${auth.TWITCH_CHANNEL} : Skipped playlist.`);
+                        ircClient.send(`PRIVMSG #${auth.BROADCASTER_NAME} : Skipped playlist.`);
                 }
             }
         });

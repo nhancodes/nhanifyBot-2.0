@@ -56,7 +56,7 @@ export async function handleWebSocketMessage(KEEPALIVE_INTERVAL_MS: number, webs
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             if (websocketClients.length === 1) {
-                await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.TWITCH_TOKEN);
+                await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.BROADCASTER_TWITCH_TOKEN);
             }
             else {
                 websocketClients.shift()?.close();

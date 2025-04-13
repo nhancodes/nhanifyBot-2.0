@@ -2,13 +2,13 @@ import { WebSocket } from 'ws';
 import { rewards } from './twitch/api/reward.js';
 import { Queue } from './videoAPI/queue.js';
 import { nhanify } from './videoAPI/nhanify/dataAPI.js';
-import { Nhanify, NhanifyQueue, YTVideo } from './videoAPI/types.js';
+import { Nhanify} from './videoAPI/types.js';
 import auth from './auth.json' with {type: 'json'};
 import { RewardRedeemEvent } from './twitch/eventSub/types.js';
 type UserAction = { type: string; method: RewardRedeemEvent };
 
 export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue, chatter: string, nhanify: Nhanify) {
-    if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${auth.TWITCH_ACCOUNT} : @${chatter}, all queues are empty.`);
+    if (Queue.getPlayingOn() === null) return client.send(`PRIVMSG ${auth.BROADCASTER_NAME} : @${chatter}, all queues are empty.`);
     Queue.getPlayingOn() === 'nhanify' ? nhanifyQueue.remove() : chatQueue.remove()
     if (!chatQueue.isEmpty()) {
         Queue.setPlayingOn("chat");
@@ -77,7 +77,7 @@ export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>,
             client.send(JSON.stringify({ action: "play", queue }));
         });
     } else {
-        client.send(`PRIVMSG ${auth.TWITCH_ACCOUNT} : @${chatter}, No playlist to skip.`);
+        client.send(`PRIVMSG ${auth.BROADCASTER_NAME} : @${chatter}, No playlist to skip.`);
     }
 }
 

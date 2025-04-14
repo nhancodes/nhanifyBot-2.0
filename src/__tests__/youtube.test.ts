@@ -88,6 +88,7 @@ describe("YouTube API Functions", () => {
 		it("should return video information for valid videos", async () => {
 			// Mock successful API response
 			fetchMock.mockResolvedValue({
+				ok: true,
 				json: async () => ({
 					items: [
 						{
@@ -124,9 +125,11 @@ describe("YouTube API Functions", () => {
 		it("should handle videos with restrictions", async () => {
 			// Test age-restricted video
 			fetchMock.mockResolvedValue({
+				ok: true,
 				json: async () => ({
 					items: [
 						{
+							id: "age123",
 							status: { embeddable: true },
 							contentDetails: {
 								duration: "PT3M30S",
@@ -142,9 +145,11 @@ describe("YouTube API Functions", () => {
 
 			// Test non-embeddable video
 			fetchMock.mockResolvedValue({
+				ok: true,
 				json: async () => ({
 					items: [
 						{
+							id: "embed123",
 							status: { embeddable: false },
 							contentDetails: {
 								duration: "PT3M30S",
@@ -163,9 +168,11 @@ describe("YouTube API Functions", () => {
 
 			// Test region-restricted video
 			fetchMock.mockResolvedValue({
+				ok: true,
 				json: async () => ({
 					items: [
 						{
+							id: "region123",
 							status: { embeddable: true },
 							contentDetails: {
 								duration: "PT3M30S",
@@ -185,9 +192,11 @@ describe("YouTube API Functions", () => {
 
 			// Test long duration video
 			fetchMock.mockResolvedValue({
+				ok: true,
 				json: async () => ({
 					items: [
 						{
+							id: "long123",
 							status: { embeddable: true },
 							contentDetails: {
 								duration: "PT20M30S", // 20 minutes

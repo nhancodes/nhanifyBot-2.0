@@ -1,6 +1,6 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
-import {config} from '../../configType.js'; 
+import { config } from '../../configType.js';
 import { updateAuth } from '../auth.js';
 type State = { [key: string]: boolean };
 
@@ -191,6 +191,7 @@ async function getRewardFromTwitch(reward: ConfigReward) {
         }
     )
     const result = await response.json();
+    console.log("GET REWARDS", result);
     if (response.ok) {
         return { type: "success", result: result.data[0] }
     } else if (response.status === 401) {

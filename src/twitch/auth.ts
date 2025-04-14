@@ -10,6 +10,7 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
         });
         const body = await response.json();
+        console.log({ body });
         if (response.status === 200) {
             console.log(`${response.status}: Valid ${entity} token.`);
         } else if (response.status === 401 && body.message === "invalid access token") {

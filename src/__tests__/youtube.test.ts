@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { Mock } from "vitest";
 import {
 	isValidURL,
 	parseURL,
@@ -6,9 +7,12 @@ import {
 } from "../videoAPI/youtube/dataAPI.js";
 
 describe("YouTube API Functions", () => {
+	let fetchMock: Mock;
+
 	// Set up global mock for fetch
 	beforeEach(() => {
-		global.fetch = vi.fn();
+		fetchMock = vi.fn();
+		global.fetch = fetchMock;
 	});
 
 	afterEach(() => {
@@ -83,7 +87,7 @@ describe("YouTube API Functions", () => {
 	describe("getVideoById", () => {
 		it("should return video information for valid videos", async () => {
 			// Mock successful API response
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({
 					items: [
 						{
@@ -101,7 +105,7 @@ describe("YouTube API Functions", () => {
 						},
 					],
 				}),
-			});
+			} as Response);
 
 			const result = await getVideoById("test123", "fake-api-key");
 
@@ -110,7 +114,7 @@ describe("YouTube API Functions", () => {
 				videoId: "test123",
 			});
 
-			expect(global.fetch).toHaveBeenCalledWith(expect.any(URL), {
+			expect(fetchMock).toHaveBeenCalledWith(expect.any(URL), {
 				headers: {
 					Accept: "application/json",
 				},
@@ -119,7 +123,7 @@ describe("YouTube API Functions", () => {
 
 		it("should handle videos with restrictions", async () => {
 			// Test age-restricted video
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({
 					items: [
 						{
@@ -131,13 +135,13 @@ describe("YouTube API Functions", () => {
 						},
 					],
 				}),
-			});
+			} as Response);
 
 			const ageRestrictedResult = await getVideoById("age123", "fake-api-key");
 			expect(ageRestrictedResult).toEqual({ restriction: "age" });
 
 			// Test non-embeddable video
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({
 					items: [
 						{
@@ -149,7 +153,7 @@ describe("YouTube API Functions", () => {
 						},
 					],
 				}),
-			});
+			} as Response);
 
 			const nonEmbeddableResult = await getVideoById(
 				"embed123",
@@ -158,7 +162,7 @@ describe("YouTube API Functions", () => {
 			expect(nonEmbeddableResult).toEqual({ restriction: "notEmbeddable" });
 
 			// Test region-restricted video
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({
 					items: [
 						{
@@ -171,7 +175,7 @@ describe("YouTube API Functions", () => {
 						},
 					],
 				}),
-			});
+			} as Response);
 
 			const regionRestrictedResult = await getVideoById(
 				"region123",
@@ -180,7 +184,7 @@ describe("YouTube API Functions", () => {
 			expect(regionRestrictedResult).toEqual({ restriction: "region" });
 
 			// Test long duration video
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({
 					items: [
 						{
@@ -192,7 +196,7 @@ describe("YouTube API Functions", () => {
 						},
 					],
 				}),
-			});
+			} as Response);
 
 			const longDurationResult = await getVideoById("long123", "fake-api-key");
 			expect(longDurationResult).toEqual({ restriction: "duration" });
@@ -200,15 +204,15 @@ describe("YouTube API Functions", () => {
 
 		it("should handle API errors and non-existent videos", async () => {
 			// Mock API error
-			(global.fetch as any).mockRejectedValue(new Error("API Error"));
+			fetchMock.mockRejectedValueOnce(new Error("API Error"));
 
 			const errorResult = await getVideoById("error123", "fake-api-key");
 			expect(errorResult).toEqual({});
 
 			// Mock empty response (no video found)
-			(global.fetch as any).mockResolvedValue({
+			fetchMock.mockResolvedValue({
 				json: async () => ({ items: [] }),
-			});
+			} as Response);
 
 			const emptyResult = await getVideoById("nonexistent123", "fake-api-key");
 			expect(emptyResult).toEqual({});

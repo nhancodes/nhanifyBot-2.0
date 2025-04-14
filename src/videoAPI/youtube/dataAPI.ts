@@ -50,6 +50,7 @@ export async function getVideoById(
 			].join(","),
 		}).toString();
 		const response = await fetch(url, headers);
+		if (!response.ok) return {};
 		const result = await response.json();
 		const item = result.items[0];
 		// console.log("THE ITEM", item);
@@ -90,8 +91,8 @@ export async function getVideoById(
 			return { restriction: "duration" };
 
 		return {
-			title: result.items[0].snippet.title,
-			videoId: result.items[0].id,
+			title: item.snippet.title,
+			videoId: item.id,
 		};
 	} catch (error) {
 		console.error(error);

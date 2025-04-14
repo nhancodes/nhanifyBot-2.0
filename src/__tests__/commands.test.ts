@@ -6,8 +6,10 @@ import {
 } from "../commands.js";
 import { Queue } from "../videoAPI/queue.js";
 import { WebSocket } from "ws";
-import type { Nhanify, YTVideo } from "../videoAPI/types.js";
+import type { Nhanify, YTVideo, NhanifyQueue } from "../videoAPI/types.js";
 import type { ChatQueue } from "../videoAPI/queue.js";
+
+type QueueType = "nhanify" | "chat" | null;
 
 // Mock rewards module
 vi.mock("../twitch/api/reward.js", () => ({
@@ -17,10 +19,18 @@ vi.mock("../twitch/api/reward.js", () => ({
 }));
 
 // Define interface for Queue static properties
-type QueueStatic = {
-	playingOn: string | null;
-	isPlaying: boolean;
-} & typeof Queue;
+interface QueueConstructor {
+	new (config: ChatQueue | NhanifyQueue): Queue;
+	setPlayingOn(queueName: QueueType): void;
+	getPlayingOn(): QueueType;
+	getIsPlaying(): boolean;
+	prototype: Queue;
+}
+
+interface QueueStatic extends QueueConstructor {
+	_playingOn: QueueType;
+	_isPlaying: boolean;
+}
 
 // Mock WebSocket class
 const mockSend = vi.fn();
@@ -29,11 +39,12 @@ const mockWebSocketInstance = {
 	on: vi.fn(),
 	close: vi.fn(),
 	terminate: vi.fn(),
-	readyState: 1, // OPEN
+	readyState: WebSocket.OPEN,
 };
 
+// Create a spy for the WebSocket constructor
 vi.mock("ws", () => ({
-	WebSocket: vi.fn().mockImplementation(() => mockWebSocketInstance),
+	WebSocket: vi.fn(() => mockWebSocketInstance),
 }));
 
 describe("Command Handling", () => {
@@ -42,6 +53,7 @@ describe("Command Handling", () => {
 	let mockWebSocketClients: Set<WebSocket>;
 	let mockWebSocket: WebSocket;
 	let mockNhanify: Nhanify;
+	let queueStatic: QueueStatic;
 
 	// Sample videos
 	const sampleVideos: YTVideo[] = [
@@ -55,25 +67,25 @@ describe("Command Handling", () => {
 		// Reset mocks
 		mockSend.mockClear();
 
-		// Reset Queue static state with proper typing
-		const queueStatic = Queue as QueueStatic;
+		// Setup Queue static properties
+		queueStatic = Queue as unknown as QueueStatic;
+		queueStatic._playingOn = null;
+		queueStatic._isPlaying = true;
 
+		// Mock Queue static methods
 		vi.spyOn(Queue, "setPlayingOn").mockImplementation(
-			(queueName: string | null) => {
-				queueStatic.playingOn = queueName;
+			(queueName: QueueType) => {
+				queueStatic._playingOn = queueName;
 			},
 		);
 
 		vi.spyOn(Queue, "getPlayingOn").mockImplementation(() => {
-			return queueStatic.playingOn;
+			return queueStatic._playingOn;
 		});
 
 		vi.spyOn(Queue, "getIsPlaying").mockImplementation(() => {
-			return queueStatic.isPlaying;
+			return queueStatic._isPlaying;
 		});
-
-		queueStatic.playingOn = null;
-		queueStatic.isPlaying = true;
 
 		// Setup mock WebSocket client
 		mockWebSocket = new WebSocket("ws://localhost:3000");

@@ -120,6 +120,31 @@ img {
     height: 15px;
 }
 
+/* Connection status indicator */
+#connectionStatus {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+#connectionStatus.connected {
+    background-color: rgba(0, 128, 0, 0.6);
+    color: white;
+}
+
+#connectionStatus.disconnected {
+    background-color: rgba(255, 165, 0, 0.6);
+    color: white;
+}
+
+#connectionStatus.failed {
+    background-color: rgba(255, 0, 0, 0.6);
+    color: white;
+}
+
 @keyframes roundtime {
     to {
         transform: scaleX(0);

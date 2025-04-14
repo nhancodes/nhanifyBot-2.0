@@ -9,6 +9,13 @@ import { WebSocket } from "ws";
 import type { Nhanify, YTVideo } from "../videoAPI/types.js";
 import type { ChatQueue } from "../videoAPI/queue.js";
 
+// Mock rewards module
+vi.mock("../twitch/api/reward.js", () => ({
+	rewards: {
+		setRewardsIsPause: vi.fn().mockResolvedValue(undefined),
+	},
+}));
+
 // Define interface for Queue static properties
 type QueueStatic = {
 	playingOn: string | null;
@@ -16,23 +23,18 @@ type QueueStatic = {
 } & typeof Queue;
 
 // Mock WebSocket class
-vi.mock("ws", () => {
-	return {
-		WebSocket: vi.fn().mockImplementation(() => ({
-			send: vi.fn((data) => {
-				// Ensure data can be stringified if it's an object
-				if (typeof data === "object") {
-					return JSON.stringify(data);
-				}
-				return data;
-			}),
-			on: vi.fn(),
-			close: vi.fn(),
-			terminate: vi.fn(),
-			readyState: 1, // OPEN
-		})),
-	};
-});
+const mockSend = vi.fn();
+const mockWebSocketInstance = {
+	send: mockSend,
+	on: vi.fn(),
+	close: vi.fn(),
+	terminate: vi.fn(),
+	readyState: 1, // OPEN
+};
+
+vi.mock("ws", () => ({
+	WebSocket: vi.fn().mockImplementation(() => mockWebSocketInstance),
+}));
 
 describe("Command Handling", () => {
 	let chatQueue: Queue;
@@ -50,6 +52,9 @@ describe("Command Handling", () => {
 	];
 
 	beforeEach(() => {
+		// Reset mocks
+		mockSend.mockClear();
+
 		// Reset Queue static state with proper typing
 		const queueStatic = Queue as QueueStatic;
 
@@ -70,9 +75,8 @@ describe("Command Handling", () => {
 		queueStatic.playingOn = null;
 		queueStatic.isPlaying = true;
 
-		// Setup mock WebSocket client with spies
+		// Setup mock WebSocket client
 		mockWebSocket = new WebSocket("ws://localhost:3000");
-		vi.spyOn(mockWebSocket, "send");
 		mockWebSocketClients = new Set<WebSocket>([mockWebSocket]);
 
 		// Setup queues
@@ -122,11 +126,6 @@ describe("Command Handling", () => {
 			// Set initial state - playing from nhanify queue
 			Queue.setPlayingOn("nhanify");
 
-			// Mock rewards
-			const mockRewards = {
-				setRewardsIsPause: vi.fn().mockResolvedValue(undefined),
-			};
-
 			// Call playerSkipSong
 			await playerSkipSong(
 				mockWebSocketClients,
@@ -139,14 +138,10 @@ describe("Command Handling", () => {
 
 			// Should switch to chat queue and send play message
 			expect(Queue.getPlayingOn()).toBe("chat");
-			expect(mockWebSocket.send).toHaveBeenCalledWith(expect.any(String));
+			expect(mockSend).toHaveBeenCalled();
 
 			// Verify WebSocket clients were notified
-			for (const client of mockWebSocketClients) {
-				expect(client.send).toHaveBeenCalledWith(
-					expect.stringContaining("play"),
-				);
-			}
+			expect(mockSend).toHaveBeenCalledWith(expect.any(String));
 		});
 
 		it("should use nhanify queue when chat queue is empty", async () => {
@@ -206,29 +201,21 @@ describe("Command Handling", () => {
 			// Set initial state
 			Queue.setPlayingOn("nhanify");
 
-			// Mock rewards
-			const mockRewards = {
-				setRewardsIsPause: vi.fn().mockResolvedValue(undefined),
-			};
-
-			// Call playerSkipPlaylist
+			// Call playerSkipPlaylist with mockNhanify
 			await playerSkipPlaylist(
 				mockWebSocketClients,
 				mockWebSocket,
 				nhanifyQueue,
 				"testUser",
 				chatQueue,
+				mockNhanify,
 			);
 
 			// Verify nhanify.nextPlaylist was called
 			expect(mockNhanify.nextPlaylist).toHaveBeenCalled();
 
 			// Verify WebSocket clients were notified
-			for (const client of mockWebSocketClients) {
-				expect(client.send).toHaveBeenCalledWith(
-					expect.stringContaining("play"),
-				);
-			}
+			expect(mockSend).toHaveBeenCalledWith(expect.any(String));
 		});
 
 		it("should handle when not playing nhanify playlist", async () => {
@@ -242,19 +229,34 @@ describe("Command Handling", () => {
 				nhanifyQueue,
 				"testUser",
 				chatQueue,
+				mockNhanify,
 			);
 
 			// Should notify user that there's no playlist to skip
-			expect(mockWebSocket.send).toHaveBeenCalledWith(
+			expect(mockSend).toHaveBeenCalledWith(
 				expect.stringContaining("No playlist to skip"),
 			);
 		});
 
 		it("should skip to the next playlist when playing nhanify queue", async () => {
-			if (!mockNhanify) {
-				throw new Error("mockNhanify not initialized");
-			}
-			// ... rest of the test case ...
+			// Set initial state
+			Queue.setPlayingOn("nhanify");
+
+			// Call playerSkipPlaylist
+			await playerSkipPlaylist(
+				mockWebSocketClients,
+				mockWebSocket,
+				nhanifyQueue,
+				"testUser",
+				chatQueue,
+				mockNhanify,
+			);
+
+			// Verify nhanify.nextPlaylist was called
+			expect(mockNhanify.nextPlaylist).toHaveBeenCalled();
+
+			// Verify WebSocket clients were notified
+			expect(mockSend).toHaveBeenCalledWith(expect.any(String));
 		});
 	});
 

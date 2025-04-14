@@ -90,6 +90,7 @@ export async function playerSkipPlaylist(
 	nhanifyQueue: Queue,
 	chatter: string,
 	chatQueue: Queue,
+	nhanify: Nhanify,
 ) {
 	try {
 		if (nhanify && Queue.getPlayingOn() === "nhanify") {

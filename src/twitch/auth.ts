@@ -10,10 +10,10 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
         });
         const body = await response.json();
-        console.log({ body });
+        // console.log({ body });
         if (response.status === 200) {
             console.log(`${response.status}: Valid ${entity} token.`);
-        } else if (response.status === 401 && body.message === "invalid access token") {
+        } else if (response.status === 401 && body.message === "invalid access token" || body.message === "missing authorization token") {
             console.error(`${entity} : ${JSON.stringify(body)}`);
             const result = await updateAuth(entity, REFRESH_TWITCH_TOKEN);
             return result;

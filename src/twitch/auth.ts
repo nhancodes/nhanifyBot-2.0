@@ -10,7 +10,6 @@ export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: stri
             headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
         });
         const body = await response.json();
-        // console.log({ body });
         if (response.status === 200) {
             console.log(`${response.status}: Valid ${entity} token.`);
         } else if (response.status === 401 && body.message === "invalid access token" || body.message === "missing authorization token") {
@@ -75,11 +74,9 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
             return { type: "data", body };
         }
         if (response.status === 400) {
-            //open default browser to with the url 
-            console.log("_____________________________________IN 400_______________________________________");
+            console.log(`Creating new ${entity} token`);
             const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=${scope}&state=c3ab8aa609ea11e793ae92361f002671-${userId}-${scope}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
             await open(url);
-            console.log("WAITING TO RESOLVED PROMISE");
             let result;
             if (entity === 'bot') {
                 result = await tokenPromiseBot as { type: string; body: { access_token: string; refresh_token: string } };
@@ -87,12 +84,11 @@ async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
                 result = await tokenPromiseBroadcaster as { type: string; body: { access_token: string; refresh_token: string } };
 
             }
-            console.log("RESOLVED PROMISE");
-
             return result;
         }
         return { type: "error", body };
     } catch (e) {
+        console.error(e);
         return { type: "error", body: { message: "Something went wrong when refreshing token" } };
     }
 }

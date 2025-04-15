@@ -6,6 +6,7 @@ import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { rewards } from '../api/reward.js';
 export default async function commandsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
+    console.log(subscriptionType);
     switch (subscriptionType) {
         case "channel.channel_points_custom_reward_redemption.add":
             const title = parsedSubscription.reward.title;

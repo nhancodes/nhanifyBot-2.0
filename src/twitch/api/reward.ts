@@ -144,7 +144,7 @@ class Reward {
         if (response.ok) {
             return { type: "success", result: result.data[0] }
         } else if (response.status === 401) {
-            const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
             if (result.type === 'error') console.log(JSON.stringify(result.body))
         } else {
             return { type: "error", result };
@@ -169,7 +169,7 @@ class Reward {
             this.reward.is_paused = result.data[0].is_paused;
             return { type: "success", result: result.data[0] }
         } else if (response.status === 401) {
-            const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
             if (result.type === 'error') console.log(JSON.stringify(result.body))
         } else {
             return { type: "error", result };
@@ -191,11 +191,10 @@ async function getRewardFromTwitch(reward: ConfigReward) {
         }
     )
     const result = await response.json();
-    console.log("GET REWARDS", result);
     if (response.ok) {
         return { type: "success", result: result.data[0] }
     } else if (response.status === 401) {
-        const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+        const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
         if (result.type === 'error') console.log(JSON.stringify(result.body))
     } else {
         return { type: "error", result: { reward, result } }
@@ -226,7 +225,7 @@ async function createReward(reward: ConfigReward) {
     if (response.ok) {
         return { type: "success", result: result.data[0] }
     } else if (response.status === 401) {
-        const result = await updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN)
+        const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
         if (result.type === 'error') console.log(JSON.stringify(result.body))
     } else {
         return { type: "error", result: { reward, result } }

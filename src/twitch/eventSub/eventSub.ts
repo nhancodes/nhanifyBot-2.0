@@ -3,10 +3,10 @@ import auth from '../../auth.json' with {type: 'json'};
 import { updateAuth } from '../auth.js';
 import { Entity } from './types.js';
 
-// put a limit of only 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
     try {
-        let response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+        const subEventURL = `${auth.EVENTSUB_HOST}/eventsub/subscriptions`;
+        let response = await fetch(subEventURL, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + TWITCH_TOKEN,
@@ -19,7 +19,6 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
                 condition: {
                     broadcaster_user_id: auth.BROADCASTER_ID,
                     user_id: auth.BOT_ID
-                    //moderator_user_id: auth.BROADCASTER_ID
                 },
                 transport: {
                     method: 'websocket',
@@ -27,23 +26,14 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
                 }
             })
         });
-        if (response.status != 202) {
-            console.log("HERE IS THE ERROR", await response.json());
-            throw new Error(`${response.status}: Failed to subscribe`);
+        const result = await response.json();
+        if (response.status === 202) console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
+        if (result.message === "401: Failed to subscribe") {
+            console.log(`${result.status}: ${result.message}`);
+            const resultAuth = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
+            if (resultAuth && resultAuth.type === "data") registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
         }
-        let data = await response.json();
-        console.log(`Subscribed to ${data.data[0].type} [${data.data[0].id}]`);
-    } catch (e: any) {
-        if (e.message === "401: Failed to subscribe") {
-            console.error(e.message);
-            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
-            //update the broadcaster token 
-            if (result && result.type === "data") {
-                //if success register again
-                registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
-            } 
-        } else {
-            console.error(e);
-        }
+    } catch (e) {
+        console.error(e);
     }
 }

@@ -58,6 +58,7 @@ export interface RewardRedeemEvent extends SubscriptionBase<'channel.channel_poi
   chatter_user_login: string;
   id: string;
   status: string;
+  user_input: string;
   reward: {
     id: string,
     title: string,

@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { Message, RewardRedeemEvent } from './types.js';
-import commandsHandler from './commandsHandler.js';
+import subscriptionsHandler from './subscriptionsHandler.js';
 import { registerEventSubListener } from './eventSub.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
@@ -53,7 +53,7 @@ export async function handleWebSocketMessage(data: Message, ircClient: WebSocket
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message
             const parsedSubscription = { ...data.payload.event, sub_type: data.payload.subscription.type } as RewardRedeemEvent;
-            await commandsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify);
+            await subscriptionsHandler(data.metadata.subscription_type, parsedSubscription, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify, parsedSubscription.user_input);
             break;
     }
 }

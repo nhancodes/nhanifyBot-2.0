@@ -77,6 +77,7 @@ class Rewards {
         const updatePromises = [];
         for (let rewardName in states) {
             const reward = rewards.getRewardByTitle(rewardName);
+            console.log({ rewards, reward });
             if (reward) {
                 const isPaused = states[rewardName];
                 if (reward.getIsPaused() !== isPaused) {
@@ -86,6 +87,7 @@ class Rewards {
         }
         // get all result from promises
         const updatedRewards = await Promise.all(updatePromises);
+        console.log({ updatedRewards });
         updatedRewards.forEach(reward => {
             if (reward!.type === "success") {
                 console.log(`${reward!.type}: ${reward!.result.title} is ${reward!.result.is_paused ? "paused" : "resumed"}`)
@@ -209,6 +211,20 @@ async function getRewardFromTwitch(reward: ConfigReward) {
 
 async function createReward(reward: ConfigReward) {
     const { title, cost } = reward;
+    //title is Song request 
+    const body = {
+        is_user_input_required: false,
+        prompt: "",
+        title,
+        cost,
+        background_color: "#19376d",
+        is_global_cooldown_enabled: true,
+        global_cooldown_seconds: 10
+    };
+    if (reward.title === config.REWARDS[2].title) {
+        body.is_user_input_required = true;
+        body.prompt = "Enter a valid youtube url.";
+    }
     const response = await fetch(
         `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}`,
         {
@@ -218,13 +234,7 @@ async function createReward(reward: ConfigReward) {
                 'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                title,
-                cost,
-                background_color: "#19376d",
-                is_global_cooldown_enabled: true,
-                global_cooldown_seconds: 30
-            })
+            body: JSON.stringify(body)
         }
     )
     const result = await response.json();

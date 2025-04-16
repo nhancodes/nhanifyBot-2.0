@@ -15,12 +15,12 @@ export async function startTwitchIRCWebSocketClient(setIrcClient: (client: WebSo
     console.error(error);
   });
 
-  client.on('close', () => {
-    console.log('WebSocket connection closed on ' + IRC_WEBSOCKET_URL);
+  client.on('close', (code, reason) => {
+    console.log(`WebSocket connection closed on ${IRC_WEBSOCKET_URL} due to ${code}: ${reason}`);
     setTimeout(async () => {
       const ircClient = await startTwitchIRCWebSocketClient(setIrcClient, IRC_WEBSOCKET_URL, chatQueue, webSocketServerClients, nhanifyQueue, nhanify, rewards);
       setIrcClient(ircClient);
-    }, 1000)
+    }, 5000)
   });
 
   client.on("open", async () => {

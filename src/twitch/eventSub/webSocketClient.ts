@@ -16,11 +16,11 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
         console.log('WebSocket connection opened to ' + EVENTSUB_WEBSOCKET_URL);
     });
 
-    websocketClient.on('close', () => {
-        console.log('WebSocket connection closed on ' + EVENTSUB_WEBSOCKET_URL);
+    websocketClient.on('close', (code, reason) => {
+        console.log(`WebSocket connection closed on ${EVENTSUB_WEBSOCKET_URL} due to ${code}: ${reason}`);
         setTimeout(async () => {
             await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify)
-        }, 1000)
+        }, 5000)
     });
 
     websocketClient.on('message', async (event: Buffer) => {

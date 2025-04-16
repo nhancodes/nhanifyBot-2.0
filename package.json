@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsx src/index.ts"
+    "prod": "npx tsx src/index.ts --file=config.json",
+    "dev": "npx tsx src/index.ts --file=config.dev.json"
   },
   "repository": {
     "type": "git",

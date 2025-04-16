@@ -1,5 +1,5 @@
 import { YTVideo } from '../types.js';
-import {config} from '../../configType.js';
+import { config } from '../../config.js';
 //https://www.youtube.com/watch?v=_QkGAaYtXA0
 //https://youtu.be/_QkGAaYtXA0?si=swsvRGOx6nBab1Qh
 //https://m.youtube.com/watch?v=_QkGAaYtXA0
@@ -15,7 +15,7 @@ export function isValidURL(URLInput: string): boolean {
         (hostname === "youtu.be" && pathname) ||
         (hostname === "m.youtube.com" && pathname === "/watch" && videoId)
       )
-      return true;
+        return true;
     }
     return false;
   } catch (error) {

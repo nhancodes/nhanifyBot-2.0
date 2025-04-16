@@ -1,5 +1,4 @@
 
-import WebSocket from 'ws';
 import { authenticateTwitchToken } from './twitch/auth.js';
 import auth from './auth.json' with {type: 'json'};
 import { startTwitchEventSubWebSocketClient } from './twitch/eventSub/webSocketClient.js';
@@ -8,7 +7,7 @@ import { startWebSocketServer } from './server/webSocketServer.js';
 import { Queue } from './videoAPI/queue.js';
 import { ChatQueue, Nhanify, NhanifyQueue } from './videoAPI/types.js';
 import { getNhanifyRewards, rewards } from './twitch/api/reward.js';
-import { config } from './configType.js';
+import { config } from './config.js';
 type PlaylistsConfig = { nhanify: Nhanify, queue: NhanifyQueue };
 const KEEPALIVE_INTERVAL_MS = 10000;
 const EVENTSUB_WEBSOCKET_URL = `wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=${KEEPALIVE_INTERVAL_MS / 1000}`;

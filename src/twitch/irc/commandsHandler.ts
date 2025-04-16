@@ -7,23 +7,22 @@ import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
 import { playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
-import {config, Env} from '../../configType.js'
-const { ONLY_BROADCASTER, COMMANDS } = config ;
-const commands: Env = COMMANDS[auth.ENV];
+import { config } from '../../config.js'
+const { ONLY_BROADCASTER, COMMANDS } = config;
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;
         const channel = parsedMessage.command.channel;
         const botCommand = parsedMessage.command.botCommand;
         // Find the key that matches the botCommand
-        const commandKey = Object.keys(commands).find(
-            key => commands[key] === botCommand
+        const commandKey = Object.keys(COMMANDS).find(
+            key => COMMANDS[key] === botCommand
         )
         if (chatter) ircCommand.setChatter(chatter);
         switch (commandKey) {
             case "playlist":
                 if (Queue.getPlayingOn() === "nhanify" && Queue.getIsPlaying()) {
-                    const id  = nhanifyQueue.getQueue().id;
+                    const id = nhanifyQueue.getQueue().id;
                     client.send(`PRIVMSG ${channel} : @${chatter}, ${auth.NHANIFY_URL}/public/playlists/1/playlist/1/${id}`);
                 } else {
                     client.send(`PRIVMSG ${channel} : @${chatter}, no playlist from Nhanify is currently playing.`);
@@ -33,7 +32,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 client.send(`PRIVMSG ${channel} : @${chatter}, https://www.youtube.com/shorts/d6Uwh81MoKM`);
                 break;
             case "commands":
-                const chatCommands = Object.entries(commands).filter(command => !ONLY_BROADCASTER[command[0]]);
+                const chatCommands = Object.entries(COMMANDS).filter(command => !ONLY_BROADCASTER[command[0]]);
                 const formattedCommands = chatCommands.map(command => `${command[0]}: !${command[1]}`).join(" | ");
                 client.send(`PRIVMSG ${channel} : @${chatter}, ${formattedCommands}`);
                 break;

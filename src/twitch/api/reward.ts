@@ -1,6 +1,6 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
-import { config } from '../../configType.js';
+import { config, filePath } from '../../config.js';
 import { updateAuth } from '../auth.js';
 type State = { [key: string]: boolean };
 
@@ -96,11 +96,10 @@ class Rewards {
     }
 
     getJsonConfig() {
-        const result = this.getRewards().map((reward: RewardType) => {
+        return this.getRewards().map((reward: RewardType) => {
             const rewardFound = config.REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
             return { id: reward.id, title: reward.title, cost: reward.cost, isPausedStates: rewardFound?.isPausedStates };
         });
-        return { REWARDS: result };
     }
 }
 
@@ -157,7 +156,7 @@ class Reward {
             {
                 method: 'PATCH',
                 headers: {
-                    'client-id': auth.CLIENT_ID,
+                    'client-id': auth.CLIENT_ID, // the application - sitting the nhanybot 
                     'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
@@ -165,6 +164,7 @@ class Reward {
             }
         )
         const result = await response.json();
+        console.log(response.status);
         if (response.ok) {
             this.reward.is_paused = result.data[0].is_paused;
             return { type: "success", result: result.data[0] }
@@ -172,6 +172,7 @@ class Reward {
             const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
             if (result.type === 'error') console.log(JSON.stringify(result.body))
         } else {
+            console.log("IN setIsPaused");
             return { type: "error", result };
         }
     }
@@ -180,25 +181,30 @@ class Reward {
 const rewards = new Rewards([]);
 
 async function getRewardFromTwitch(reward: ConfigReward) {
-    const response = await fetch(
-        `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${reward.id}`,
-        {
-            headers: {
-                'client-id': auth.CLIENT_ID,
-                'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
-            }
+    try {
+        const response = await fetch(
+            `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${reward.id}`,
+            {
+                headers: {
+                    'client-id': auth.CLIENT_ID,
+                    'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
+                }
 
-        }
-    )
-    const result = await response.json();
-    if (response.ok) {
-        return { type: "success", result: result.data[0] }
-    } else if (response.status === 401) {
-        const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
-        if (result.type === 'error') console.log(JSON.stringify(result.body))
-    } else {
-        return { type: "error", result: { reward, result } }
-    };
+            }
+        )
+        const result = await response.json();
+        if (response.ok) {
+            return { type: "success", result: result.data[0] }
+        } else if (response.status === 401) {
+            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
+            if (result.type === 'error') console.log(JSON.stringify(result.body))
+        } else {
+            return { type: "error", result: { reward, result } };
+        };
+    } catch (e) {
+        console.error(e);
+        return { type: "error", result: "Something went wrong with getting the reward from twitch." }
+    }
 }
 
 async function createReward(reward: ConfigReward) {
@@ -243,7 +249,7 @@ async function getNhanifyRewards() {
     const foundSuccesses = rewardsTwitch.filter(rewards => rewards!.type === "success");
     rewardsTwitch.forEach(response => {
         if (response!.type === "error") {
-            console.log(`${response!.result.reward.title} reward not found.`)
+            console.log(`${response!.result.reward.title}: ${response!.result.result.message}`)
         } else if (response!.type === "success") {
             console.log(`${response!.result.title} reward found.`)
         }
@@ -254,7 +260,7 @@ async function getNhanifyRewards() {
     const createdRewardsTwitch = await Promise.all(createPromises);
     createdRewardsTwitch.forEach(response => {
         if (response!.type === "error") {
-            console.log(`${response!.result.title} reward not created.`)
+            console.log(`${response!.result.reward.title}: ${response!.result.result.message}`)
         } else if (response!.type === "success") {
             console.log(`${response!.result.title} reward created.`)
         }
@@ -264,8 +270,15 @@ async function getNhanifyRewards() {
         rewards.addReward(new Reward(success!.result))
         console.log(`${success!.result.title} reward instance was created and added to rewards class.`)
     });
-    if (errors.length > 0) writeFileSync("./src/twitch/api/rewards.json", JSON.stringify(rewards.getJsonConfig()));
+    const rewardsConfig = rewards.getJsonConfig();
+    const updatedConfig = { ...config, REWARDS: rewardsConfig };
+    if (errors.length > 0) {
+        if (filePath === "config.json") {
+            writeFileSync("./config.json", JSON.stringify(updatedConfig));
+        } else {
+            writeFileSync("./config.dev.json", JSON.stringify(updatedConfig));
+        }
+    }
 }
-
 
 export { getNhanifyRewards, rewards, Rewards };

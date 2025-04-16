@@ -1,6 +1,6 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { Nhanify, NhanifyPlaylist, NhanifyQueue, PlaylistAPI, YTVideo } from '../types.js';
-import {config} from '../../configType.js';
+import { config } from '../../config.js';
 export const nhanify: Nhanify = {
     playlistIndex: 0,
     playlists: [],
@@ -15,13 +15,13 @@ export const nhanify: Nhanify = {
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async nextPlaylist(): Promise<NhanifyQueue> {
-        let playlistLength : number = 0;
-        let creator : string = "";
-        let title : string = "";
-        let videos: YTVideo []  = [];
+        let playlistLength: number = 0;
+        let creator: string = "";
+        let title: string = "";
+        let videos: YTVideo[] = [];
         let count = 1;
         let id = 0;
-        while (playlistLength === 0 && count <= this.playlists.length) { 
+        while (playlistLength === 0 && count <= this.playlists.length) {
             const playlist = this.getPlaylist();
             creator = playlist.creator;
             title = playlist.title;

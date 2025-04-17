@@ -20,40 +20,38 @@
           {
                "id":"",
                "title":"Nhanify: Skip Song",
-               "cost":1000,
+               "cost":200,
                "isPausedStates":{"chat":false,"nhanify":false,"null":true}
           },
           {
                "id":"",
                "title":"Nhanify: Skip Playlist",
-               "cost":10000,
+               "cost":700,
                "isPausedStates":{"chat":true,"nhanify":false,"null":true}
-               }
-          ],
-     "COMMANDS": {
-          "prod": {
-               "songRequest": "sr",
-               "skipSong": "skipSong",
-               "skipPlaylist": "skipPlaylist",
-               "saveSong": "saveSong",
-               "playingSong": "song",
-               "pauseSong": "pause",
-               "resumeSong": "resume",
-               "commands": "commands",
-               "aboutNhanify": "nhanify",
-               "playlist": "playlist"
           },
-          "dev": {
-               "songRequest": "devsr",
-               "skipSong": "devsks",
-               "skipPlaylist": "devskp",
-               "saveSong": "devsvs",
-               "playingSong": "devs",
-               "pauseSong": "devps",
-               "resumeSong": "devrs",
-               "commands": "devcommands",
-               "aboutNhanify": "devnhanify",
-               "playlist": "devplaylist"
+          {
+               "id":"",
+               "title":"Nhanify: Song Request",
+               "cost":100,
+               "isPausedStates":{"chat":false,"nhanify":false,"null":false}
+          },
+          {
+               "id":"",
+               "title":"Nhanify: Save Song",
+               "cost":100,
+               "isPausedStates":{"chat":false,"nhanify":false,"null":true}
           }
+     ],
+     "COMMANDS": {
+          "songRequest": "sr",
+          "skipSong": "skipSong",
+          "skipPlaylist": "skipPlaylist",
+          "saveSong": "saveSong",
+          "playingSong": "song",
+          "pauseSong": "pause",
+          "resumeSong": "resume",
+          "commands": "commands",
+          "aboutNhanify": "nhanify",
+          "playlist": "playlist"
      }
 }

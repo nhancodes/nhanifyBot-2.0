@@ -210,6 +210,7 @@ async function getRewardFromTwitch(reward: ConfigReward) {
 }
 
 async function createReward(reward: ConfigReward) {
+    //console.log("REWARDS", config.REWARDS);
     const { title, cost } = reward;
     //title is Song request 
     const body = {

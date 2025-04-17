@@ -21,8 +21,8 @@ A twitch music bot that takes youtube song requests during stream and gives the 
 
 1. Create Twitch accounts that will act as your bot and broadcaster if not already.
 1. Register the application on your bot account on the Twitch Developer Console.
-   - [Link](https://dev.twitch.tv/docs/authentication/register-app/) to instruction on how to register.
-   - On step 4. add `http://localhost:3000/authorize` as the `OAuth Redirect URL`
+   - [Twitch Developer Console](https://dev.twitch.tv/docs/authentication/register-app/) for instructions on how to register.
+   - On step 4. of the instructions add `http://localhost:3000/authorize` as the `OAuth Redirect URL`
 1. Obtain a Youtube API key to fetch data about music videos.
    - Create a Google Account if not already.
    - When logged into the account, go to [Google Console Credentials](https://console.cloud.google.com/apis/credentials).
@@ -30,7 +30,7 @@ A twitch music bot that takes youtube song requests during stream and gives the 
    - Under `API Keys`section click on the newly created key, go a `API restrictions`, toggle `Restrict key`, click on `Select APIs` drop down and check `YouTube Data API v3`, and click `Save`.
    - Click on `Show key` button to see your `API key` for when you need it later on in the setup process.
 1. **Optional** Obtain Nhanify API key to fetch playlists and save songs.
-   - Co to [Nhanify](https://www.nhanify.com/signin) sign in with Twitch to create a Nhanify account.
+   - Co to [Nhanify](https://www.nhanify.com/signin) and sign in with Twitch to create a Nhanify account.
    - Go to `Your Playlist`, click on `Generate API Key` to get the API key, and store the key somewhere safe.
    - Your user id can be found right above the API key. You will need this for your `auth.json` file later.
 

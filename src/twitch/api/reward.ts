@@ -81,7 +81,14 @@ class Rewards {
             if (reward) {
                 const isPaused = states[rewardName];
                 if (reward.getIsPaused() !== isPaused) {
-                    updatePromises.push(reward.setIsPaused(isPaused));
+                    const result = await reward.setIsPaused(isPaused);
+                    if (result.type === "success") {
+                        updatePromises.push(result.result);
+                    } else if (result.result.code === "401") {
+                        console.log("setIsPaused error message:", result.result.message);
+                        const resultUpdateAuth = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
+
+                    }
                 }
             }
         }
@@ -166,17 +173,7 @@ class Reward {
             }
         )
         const result = await response.json();
-        console.log(response.status);
-        if (response.ok) {
-            this.reward.is_paused = result.data[0].is_paused;
-            return { type: "success", result: result.data[0] }
-        } else if (response.status === 401) {
-            const result = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN)
-            if (result.type === 'error') console.log(JSON.stringify(result.body))
-        } else {
-            console.log("IN setIsPaused");
-            return { type: "error", result };
-        }
+        return response.ok ? { type: "success", result: result.data[0] } : { type: "error", result };
     }
 }
 

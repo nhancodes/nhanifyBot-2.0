@@ -2,16 +2,17 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import fs from 'fs';
 import path from 'path';
 import auth from '../auth.json' with {type: 'json'};
+import { CreateResponse } from '../twitch/types.js';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
 
-let resolveCodePromiseBot: (result: { type: string; body: { access_token: string; refresh_token: string } }) => void;
+let resolveCodePromiseBot: (result: CreateResponse) => void;
 let tokenPromiseBot = new Promise((resolve) => {
     resolveCodePromiseBot = resolve;
 });
 
-let resolveCodePromiseBroadcaster: (result: { type: string; body: { access_token: string; refresh_token: string } }) => void;
+let resolveCodePromiseBroadcaster: (result: CreateResponse) => void;
 let tokenPromiseBroadcaster = new Promise((resolve) => {
     resolveCodePromiseBroadcaster = resolve;
 });
@@ -45,20 +46,21 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams(payload).toString(),
             });
-            const body = await response.json() as { access_token: string; refresh_token: string; scope: string[] }
-            if (response.ok) {
+            const createResponse = response.ok ? { type: "data", data: await response.json() } as CreateResponse : { type: "error", error: await response.json() } as CreateResponse;
+            if (createResponse.type === "data") {
                 try {
                     const response = await fetch('https://id.twitch.tv/oauth2/validate', {
                         method: 'GET',
-                        headers: { 'Authorization': 'OAuth ' + body.access_token }//not long valid
+                        headers: { 'Authorization': 'OAuth ' + createResponse.data.access_token }//not long valid
                     });
                     const authBody = await response.json();
 
                     if (authBody.user_id === userId) {
                         if (scope === 'chat:read chat:edit') {
-                            resolveCodePromiseBot({ type: "data", body });
+                            // passing in the valid token 
+                            resolveCodePromiseBot(createResponse);
                         } else {
-                            resolveCodePromiseBroadcaster({ type: "data", body });
+                            resolveCodePromiseBroadcaster(createResponse);
                         }
                         res.writeHead(200, { 'Content-Type': 'text/html' });
                         return res.end('<h1>auth successful</h1><p>You can close this window.</p>');
@@ -95,9 +97,9 @@ export const webServer = http.createServer(async (req: IncomingMessage, res: Ser
                 }
             } else {
                 if (scope === 'chat:read chat:edit') {
-                    resolveCodePromiseBot({ type: "error", body });
+                    resolveCodePromiseBot(createResponse);
                 } else {
-                    resolveCodePromiseBroadcaster({ type: "error", body });
+                    resolveCodePromiseBroadcaster(createResponse);
                 }
                 res.writeHead(400, { 'Content-Type': 'text/html' });
                 return res.end('<h1>Auth successful</h1><p>Bad Request.</p>');

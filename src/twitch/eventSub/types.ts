@@ -1,4 +1,3 @@
-export type Entity = 'bot' | 'broadcaster';
 //Session Types
 type SessionBase<Status extends string> = {
   status: Status;

@@ -29,7 +29,9 @@ export type ErrorResponse = {
 }
 
 export type Entity = 'bot' | 'broadcaster';
-export type ValidateResponse = { type: "data", data: Validate } | { type: "error", error: ErrorResponse };
-export type WriteResponse = { type: "data", data: Write } | { type: "error", error: ErrorResponse };
-export type CreateResponse = { type: "data", data: Create } | { type: "error", error: ErrorResponse };
-export type RefreshResponse = { type: "data", data: Refresh } | { type: "error", error: ErrorResponse };
+export type ValidateResponse = { type: "data", message: string, data: Validate} | { type: "error", error: ErrorResponse };
+export type WriteResponse = { type: "data", message: string,  data: Write } | { type: "error", error: ErrorResponse };
+export type CreateResponse = { type: "data", message: string, data: Create } | { type: "error", error: ErrorResponse };
+export type RefreshResponse = { type: "data", message: string, data: Refresh } | { type: "error", error: ErrorResponse };
+//export type AuthResult = {type: "validate", result: ValidateResponse} | {type: "write", result: WriteResponse} | {type: "refresh", result: RefreshResponse}| {type: "create", result: CreateResponse};
+export type AuthResult =  ValidateResponse |  WriteResponse |  RefreshResponse |  CreateResponse;

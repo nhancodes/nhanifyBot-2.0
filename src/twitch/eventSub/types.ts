@@ -53,8 +53,10 @@ type SubscriptionBase<SubscriptionType extends string> = {
 };
 
 export interface RewardRedeemEvent extends SubscriptionBase<'channel.channel_points_custom_reward_redemption.add'> {
-  broadcaster_user_login: string;
-  chatter_user_login: string;
+  broadcaster_name: string;
+  broadcaster_login: string;
+  user_login: string;
+  user_name: string;
   id: string;
   status: string;
   user_input: string;

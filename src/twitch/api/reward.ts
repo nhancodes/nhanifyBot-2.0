@@ -1,22 +1,9 @@
 import auth from '../../auth.json' with {type: 'json'};
 import { writeFileSync } from 'fs';
 import { config, filePath } from '../../config.js';
-import { authenticateTwitchToken } from '../auth.js';
+import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
 type State = { [key: string]: boolean };
 
-function transformRewardsState(): { [key: string]: State } {
-  const queueStates = ["chat", "nhanify", "null"];
-  const result: { [key: string]: State } = {};
-  queueStates.forEach(queueState => {
-    const state: State = {};
-    config.REWARDS.forEach(reward => {
-      state[reward.title] = reward.isPausedStates[queueState];
-    });
-    result[queueState] = state;
-  })
-  return result;
-}
-const isPausedStates: { [key: string]: State } = transformRewardsState();
 interface RewardBase {
   id: string;
   title: string;
@@ -51,7 +38,120 @@ interface RewardType extends RewardBase {
     global_cooldown_seconds: number;
   }
 }
+type ErrorResponse =  {
+  message: string;
+  status?: number; 
+}
+type ConfigReward = { id: string; title: string; cost: number };
+type RewardResponse = {type: "data", data: RewardType} | {type: "error", error: {reward: ConfigReward, response: ErrorResponse}};
 
+function transformRewardsState(): { [key: string]: State } {
+  const queueStates = ["chat", "nhanify", "null"];
+  const result: { [key: string]: State } = {};
+  queueStates.forEach(queueState => {
+    const state: State = {};
+    config.REWARDS.forEach(reward => {
+      state[reward.title] = reward.isPausedStates[queueState];
+    });
+    result[queueState] = state;
+  })
+  return result;
+}
+const isPausedStates: { [key: string]: State } = transformRewardsState();
+//console.log({isPausedStates});
+
+
+async function getNhanifyRewards() {
+  const promises = config.REWARDS.map((reward: ConfigReward) => {
+    return getRewardFromTwitch(reward);
+  });
+  const rewardsResponses = await Promise.all(promises);
+  rewardsResponses.forEach(response => {
+    if (response.type === "error") console.log(`${response.error.reward.title}: ${response.error.response.message}`)
+    if (response.type === "data") console.log(`${response.data.title} reward found.`)
+  });
+  const errorResponses = rewardsResponses.filter(response => response.type === "error");
+  const foundResponses = rewardsResponses.filter(response => response.type === "data");
+  const createPromises = errorResponses.map(response => {
+    return createReward(response.error.reward);
+  });
+  const createdRewardsResponses = await Promise.all(createPromises);
+  createdRewardsResponses.forEach(response => {
+    if (response.type === "error") console.log(`${response.error.reward.title}: ${response.error.response.message}`)
+    if (response.type === "data") console.log(`${response.data.title} reward found.`)
+  });
+  const foundCreatedRewards = [...foundResponses, ...createdRewardsResponses].filter(response => response.type === "data");
+  foundCreatedRewards.forEach(reward => {
+    rewards.addReward(new Reward(reward.data))
+    const addedReward = rewards.getRewardByTitle(reward.data.title);
+    addedReward ? console.log(`${addedReward.getTitle()} reward instance was created and added to rewards.`) : console.log(`${reward.data.title} reward instance was NOT created and added to rewards.`);
+  });
+
+  //update the config json
+  const rewardsConfig = rewards.getJsonConfig();
+
+  const updatedConfig = { ...config, REWARDS: rewardsConfig };
+  if (createdRewardsResponses.length > 0) {
+    console.log("Wrote new rewards to config.json");
+    if (filePath === "config.json") return writeFileSync("./config.json", JSON.stringify(updatedConfig));
+    return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig));
+  }
+  console.log("No new rewards to write to config.json");
+}
+
+async function getRewardFromTwitch(reward: ConfigReward): Promise<RewardResponse> {
+  try {
+    const response = await fetch(
+      `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${reward.id}`,
+      {
+        headers: {
+          'client-id': auth.CLIENT_ID,
+          'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
+        }
+      }
+    )
+    const data = await response.json();
+    return response.ok ? { type: "data", data: data.data[0]} : { type: "error", error: { response: data, reward}};
+  } catch (e) {
+    return { type: "error", error: {reward, response: {message: `Get Twitch reward error: ${JSON.stringify(e)}`}}};
+  }
+}
+
+async function createReward(reward: ConfigReward): Promise<RewardResponse> {
+  try {
+    const { title, cost } = reward;
+    //title is Song request 
+    const body = {
+      is_user_input_required: false,
+      prompt: "",
+      title,
+      cost,
+      background_color: "#19376d",
+      is_global_cooldown_enabled: true,
+      global_cooldown_seconds: 10
+    };
+    if (reward.title === config.REWARDS[2].title) {
+      body.is_user_input_required = true;
+      body.prompt = "Enter a valid youtube url.";
+    }
+    const response = await fetch(
+      `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}`,
+      {
+        method: 'POST',
+        headers: {
+          'client-id': auth.CLIENT_ID,
+          'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    )
+    const data = await response.json();
+    return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: { reward, response: data } };
+  } catch (e){
+    return {type: "error", error: {reward, response: {message: JSON.stringify(e)}}};
+  }
+}
 class Rewards {
   constructor(private rewards: Reward[]) { }
   getRewards(): RewardType[] {
@@ -74,32 +174,36 @@ class Rewards {
 
   async setRewardsIsPause(queueState: string) {
     const states = isPausedStates[queueState];
+    console.log({queueState, states});
     const updatePromises = [];
     for (let rewardName in states) {
       const reward = rewards.getRewardByTitle(rewardName);
-      console.log({ rewards, reward });
+      //console.log({reward});
       if (reward) {
         const isPaused = states[rewardName];
+        //console.log(`${reward.getTitle()} is currently ${reward.getIsPaused()} and but it needs to be ${isPaused}`);
         if (reward.getIsPaused() !== isPaused) {
           const result = await reward.setIsPaused(isPaused);
-          if (result.type === "success") {
-            updatePromises.push(result.result);
-          } else if (result.result.code === "401") {
-            await authenticateTwitchToken('broadcaster');
+          if (result.type === "data") {
+            reward.setReward(result.data);
+            //console.log(`${reward.getTitle()} is now currently after setIsPaused: ${reward.getIsPaused()} and but it needs to be ${isPaused}`);
+            updatePromises.push(result.data);
+          } else if (result.data.code === "401") {
+            if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
+            const result = await reward.setIsPaused(isPaused);
+            if (result.type === "data") {
+              reward.setReward(result.data);
+              updatePromises.push(result.data);
+            }
           }
         }
       }
     }
     // get all result from promises
     const updatedRewards = await Promise.all(updatePromises);
-    console.log({ updatedRewards });
-    updatedRewards.forEach(reward => {
-      if (reward!.type === "success") {
-        console.log(`${reward!.type}: ${reward!.result.title} is ${reward!.result.is_paused ? "paused" : "resumed"}`)
-      } else {
-        console.log(`${reward!.type}: ${reward!.result.error}`);
-      }
-    });
+    //console.log({updatedRewards});
+    if(updatedRewards.length === 0) return console.log("No rewards has changed.");
+    updatedRewards.forEach(reward => console.log(`${reward.title} reward was ${reward.is_paused ? "paused" : "resumed"}.`));
   }
 
   getJsonConfig() {
@@ -109,6 +213,8 @@ class Rewards {
     });
   }
 }
+
+const rewards = new Rewards([]);
 
 class Reward {
   reward: RewardType;
@@ -157,6 +263,7 @@ class Reward {
   }
 
   async setIsPaused(state: boolean) {
+    try {
     const response = await fetch(
       `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${this.reward.id}`,
       {
@@ -169,119 +276,13 @@ class Reward {
         body: JSON.stringify({ is_paused: state })
       }
     )
-    const result = await response.json();
-    return response.ok ? { type: "success", result: result.data[0] } : { type: "error", result };
-  }
-}
-
-const rewards = new Rewards([]);
-
-async function getRewardFromTwitch(reward: ConfigReward) {
-  try {
-    const response = await fetch(
-      `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${reward.id}`,
-      {
-        headers: {
-          'client-id': auth.CLIENT_ID,
-          'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
-        }
-
-      }
-    )
-    const result = await response.json();
-    if (response.ok) {
-      return { type: "success", result: result.data[0] }
-    } else if (response.status === 401) {
-      await authenticateTwitchToken('broadcaster');
-      if (result.type === 'error') console.log(JSON.stringify(result.body))
-    } else {
-      return { type: "error", result: { reward, result } };
-    };
-  } catch (e) {
-    console.error(e);
-    return { type: "error", result: "Something went wrong with getting the reward from twitch." }
-  }
-}
-
-async function createReward(reward: ConfigReward) {
-  const { title, cost } = reward;
-  //title is Song request 
-  const body = {
-    is_user_input_required: false,
-    prompt: "",
-    title,
-    cost,
-    background_color: "#19376d",
-    is_global_cooldown_enabled: true,
-    global_cooldown_seconds: 10
-  };
-  if (reward.title === config.REWARDS[2].title) {
-    body.is_user_input_required = true;
-    body.prompt = "Enter a valid youtube url.";
-  }
-  const response = await fetch(
-    `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}`,
-    {
-      method: 'POST',
-      headers: {
-        'client-id': auth.CLIENT_ID,
-        'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    }
-  )
-  const result = await response.json();
-  if (response.ok) {
-    return { type: "success", result: result.data[0] }
-  } else if (response.status === 401) {
-    await authenticateTwitchToken('broadcaster');
-  } else {
-    return { type: "error", result: { reward, result } }
-  };
-}
-
-type ConfigReward = { id: string; title: string; cost: number }
-
-async function getNhanifyRewards() {
-  const promises = config.REWARDS.map((reward: ConfigReward) => {
-    return getRewardFromTwitch(reward);
-  });
-  const rewardsTwitch = await Promise.all(promises);
-  const errors = rewardsTwitch.filter(rewards => rewards!.type === "error");
-  const foundSuccesses = rewardsTwitch.filter(rewards => rewards!.type === "success");
-  rewardsTwitch.forEach(response => {
-    if (response!.type === "error") {
-      console.log(`${response!.result.reward.title}: ${response!.result.result.message}`)
-    } else if (response!.type === "success") {
-      console.log(`${response!.result.title} reward found.`)
-    }
-  });
-  const createPromises = errors.map(error => {
-    return createReward(error!.result.reward);
-  });
-  const createdRewardsTwitch = await Promise.all(createPromises);
-  createdRewardsTwitch.forEach(response => {
-    if (response!.type === "error") {
-      console.log(`${response!.result.reward.title}: ${response!.result.result.message}`)
-    } else if (response!.type === "success") {
-      console.log(`${response!.result.title} reward created.`)
-    }
-  });
-  const createdSuccesses = [...foundSuccesses, ...createdRewardsTwitch].filter(reward => reward!.type === "success");
-  createdSuccesses.forEach(success => {
-    rewards.addReward(new Reward(success!.result))
-    console.log(`${success!.result.title} reward instance was created and added to rewards class.`)
-  });
-  const rewardsConfig = rewards.getJsonConfig();
-  const updatedConfig = { ...config, REWARDS: rewardsConfig };
-  if (errors.length > 0) {
-    if (filePath === "config.json") {
-      writeFileSync("./config.json", JSON.stringify(updatedConfig));
-    } else {
-      writeFileSync("./config.dev.json", JSON.stringify(updatedConfig));
+    const data = await response.json();
+    return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: data };
+    } catch (e) {
+      return {type: "error", error: {message: `Twitch setIsPaused error: ${JSON.stringify(e)}`}};
     }
   }
 }
+
 
 export { getNhanifyRewards, rewards, Rewards };

@@ -1,7 +1,7 @@
 
 import auth from '../../auth.json' with {type: 'json'};
-import { updateAuth } from '../auth.js';
-import { Entity } from './types.js';
+import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
+import { Entity } from '../types.js';
 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
     try {
@@ -29,9 +29,8 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
         const result = await response.json();
         if (response.status === 202) console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
         if (result.message === "401: Failed to subscribe") {
-            console.log(`${result.status}: ${result.message}`);
-            const resultAuth = await updateAuth('broadcaster', auth.BROADCASTER_REFRESH_TWITCH_TOKEN);
-            if (resultAuth && resultAuth.type === "data") registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
+            if(!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
+            await registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
         }
     } catch (e) {
         console.error(e);

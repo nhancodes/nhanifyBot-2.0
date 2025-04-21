@@ -11,10 +11,11 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
     switch (subscriptionType) {
         case "channel.channel_points_custom_reward_redemption.add":
             const title = parsedSubscription.reward.title;
-            const chatter = ircCommand.getChatter();
+            //const chatter = ircCommand.getChatter();
+            const chatter = parsedSubscription.user_name;
             switch (title) {
                 case config.REWARDS[0].title: {
-                    await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter!, nhanify);
+                    await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter, nhanify);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
@@ -25,7 +26,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     break;
                 }
                 case config.REWARDS[1].title: {
-                    await playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter!, chatQueue);
+                    await playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
@@ -36,7 +37,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     break;
                 }
                 case config.REWARDS[2].title: {
-                    await playerRequestSong(webSocketServerClients, ircClient, chatQueue, chatter!, user_input);
+                    await playerRequestSong(webSocketServerClients, ircClient, chatQueue, chatter, user_input);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
@@ -47,7 +48,7 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     break;
                 }
                 case config.REWARDS[3].title: {
-                    await playerSaveSong(chatter!, ircClient, nhanifyQueue, chatQueue);
+                    await playerSaveSong(chatter, ircClient, nhanifyQueue, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
                         const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");

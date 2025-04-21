@@ -4,7 +4,7 @@ import auth from '../../auth.json' with {type: 'json'};
 import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
-import { playerRequestSong, playerSkipPlaylist, playerSkipSong } from '../../commands.js';
+import { playerRequestSong, playerSaveSong, playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
 import { config } from '../../config.js'
 const { ONLY_BROADCASTER, COMMANDS } = config;
@@ -87,11 +87,12 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 }
                 playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!, chatQueue);
                 break;
-            case "saveSong": {
+            case "saveSong": 
                 if (ONLY_BROADCASTER.saveSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }
-            }
+                playerSaveSong(chatter!, client, nhanifyQueue, chatQueue);
         }
+
     }
 }

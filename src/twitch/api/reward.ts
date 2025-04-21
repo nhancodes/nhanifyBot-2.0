@@ -38,12 +38,12 @@ interface RewardType extends RewardBase {
     global_cooldown_seconds: number;
   }
 }
-type ErrorResponse =  {
+type ErrorResponse = {
   message: string;
-  status?: number; 
+  status?: number;
 }
 type ConfigReward = { id: string; title: string; cost: number };
-type RewardResponse = {type: "data", data: RewardType} | {type: "error", error: {reward: ConfigReward, response: ErrorResponse}};
+type RewardResponse = { type: "data", data: RewardType } | { type: "error", error: { reward: ConfigReward, response: ErrorResponse } };
 
 function transformRewardsState(): { [key: string]: State } {
   const queueStates = ["chat", "nhanify", "null"];
@@ -94,7 +94,7 @@ async function getNhanifyRewards() {
   if (createdRewardsResponses.length > 0) {
     console.log("Wrote new rewards to config.json");
     if (filePath === "config.json") return writeFileSync("./config.json", JSON.stringify(updatedConfig));
-    return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig));
+    return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig, null, 4));
   }
   console.log("No new rewards to write to config.json");
 }
@@ -111,9 +111,9 @@ async function getRewardFromTwitch(reward: ConfigReward): Promise<RewardResponse
       }
     )
     const data = await response.json();
-    return response.ok ? { type: "data", data: data.data[0]} : { type: "error", error: { response: data, reward}};
+    return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: { response: data, reward } };
   } catch (e) {
-    return { type: "error", error: {reward, response: {message: `Get Twitch reward error: ${JSON.stringify(e)}`}}};
+    return { type: "error", error: { reward, response: { message: `Get Twitch reward error: ${JSON.stringify(e)}` } } };
   }
 }
 
@@ -148,8 +148,8 @@ async function createReward(reward: ConfigReward): Promise<RewardResponse> {
     )
     const data = await response.json();
     return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: { reward, response: data } };
-  } catch (e){
-    return {type: "error", error: {reward, response: {message: JSON.stringify(e)}}};
+  } catch (e) {
+    return { type: "error", error: { reward, response: { message: JSON.stringify(e) } } };
   }
 }
 class Rewards {
@@ -174,7 +174,7 @@ class Rewards {
 
   async setRewardsIsPause(queueState: string) {
     const states = isPausedStates[queueState];
-    console.log({queueState, states});
+    console.log({ queueState, states });
     const updatePromises = [];
     for (let rewardName in states) {
       const reward = rewards.getRewardByTitle(rewardName);
@@ -202,7 +202,7 @@ class Rewards {
     // get all result from promises
     const updatedRewards = await Promise.all(updatePromises);
     //console.log({updatedRewards});
-    if(updatedRewards.length === 0) return console.log("No rewards has changed.");
+    if (updatedRewards.length === 0) return console.log("No rewards has changed.");
     updatedRewards.forEach(reward => console.log(`${reward.title} reward was ${reward.is_paused ? "paused" : "resumed"}.`));
   }
 
@@ -264,22 +264,22 @@ class Reward {
 
   async setIsPaused(state: boolean) {
     try {
-    const response = await fetch(
-      `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${this.reward.id}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'client-id': auth.CLIENT_ID, // the application - sitting the nhanybot 
-          'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ is_paused: state })
-      }
-    )
-    const data = await response.json();
-    return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: data };
+      const response = await fetch(
+        `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${this.reward.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'client-id': auth.CLIENT_ID, // the application - sitting the nhanybot 
+            'Authorization': `Bearer ${auth.BROADCASTER_TWITCH_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_paused: state })
+        }
+      )
+      const data = await response.json();
+      return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: data };
     } catch (e) {
-      return {type: "error", error: {message: `Twitch setIsPaused error: ${JSON.stringify(e)}`}};
+      return { type: "error", error: { message: `Twitch setIsPaused error: ${JSON.stringify(e)}` } };
     }
   }
 }

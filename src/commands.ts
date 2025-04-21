@@ -130,8 +130,8 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
 export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>, client: WebSocket, nhanifyQueue: Queue, chatter: string, chatQueue: Queue) {
     if (nhanify && Queue.getPlayingOn() === "nhanify") {
         const config = await nhanify.nextPlaylist();
-        const { videos, title, creator } = config;
-        nhanifyQueue.nextQueue({ type: "nhanify", title, creator, videos });
+        const { id, videos, title, creator } = config;
+        nhanifyQueue.nextQueue({ type: "nhanify", id, title, creator, videos });
         //check if chat of nhanify queue to populated
         if (!chatQueue.isEmpty()) {
             Queue.setPlayingOn("chat");
@@ -145,7 +145,6 @@ export async function playerSkipPlaylist(webSocketServerClients: Set<WebSocket>,
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             });
-
             await rewards.setRewardsIsPause("nhanify");
         }
         const queue = Queue.getPlayingOn() === "chat" ? chatQueue.getQueue() : Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getQueue() : null;
@@ -171,8 +170,8 @@ export async function playerReady(ws: WebSocket, chatQueue: Queue, nhanifyQueue:
         if (nhanify) {
             Queue.setPlayingOn("nhanify");
             const config = await nhanify.nextPlaylist();
-            const { videos, title, creator } = config;
-            nhanifyQueue.nextQueue({ type: "nhanify", title, creator, videos });
+            const { id, videos, title, creator } = config;
+            nhanifyQueue.nextQueue({ type: "nhanify", id, title, creator, videos });
             ws.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             await rewards.setRewardsIsPause("nhanify");
         } else {

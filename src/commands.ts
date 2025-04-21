@@ -7,10 +7,14 @@ import { Nhanify } from './videoAPI/types.js';
 import auth from './auth.json' with {type: 'json'};
 
 export async function playerSaveSong(chatter: string, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue) {
-    if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) return client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, No song playing to save.`);
+    if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) {
+        client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, No song playing to save.`);
+        return { type: "error" };
+    }
     const video = Queue.getPlayingOn() === "nhanify" ? nhanifyQueue.getFirst() : chatQueue.getFirst();
     if (video && video.videoId && chatter && chatter in savedVideos && savedVideos[chatter].includes(video.videoId)) {
-        return client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, song is already saved.`);
+        client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, song is already saved.`);
+        return { type: "error" };
     }
     try {
         let payload = {
@@ -35,22 +39,24 @@ export async function playerSaveSong(chatter: string, client: WebSocket, nhanify
                 } else {
                     savedVideos[chatter!].push(video?.videoId!);
                 }
-                break;
+                return { type: "success" };
             case 'no_user_account':
                 client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, Create an account at ${auth.NHANIFY_URL}.`);
-                break;
+                return { type: "error" };
             case 'playlist_max_limit':
                 client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, The playlist has reached it's max number of songs.`);
-                break;
+                return { type: "error" };
             case 'duplicate_video_id':
                 client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, This song has already been added to the playlist.`);
-                break;
+                return { type: "error" };
             default:
                 client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, Oops! Something went wrong.`);
+                return { type: "error" };
         }
     } catch (error) {
         console.error(error);
         client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : Oops! Nhanify is not available.`);
+        return { type: "error" };
     }
 }
 export async function playerRequestSong(webSocketServerClients: Set<WebSocket>, client: WebSocket, chatQueue: Queue, chatter: string, url: string) {

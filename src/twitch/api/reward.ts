@@ -188,7 +188,7 @@ class Rewards {
             reward.setReward(result.data);
             //console.log(`${reward.getTitle()} is now currently after setIsPaused: ${reward.getIsPaused()} and but it needs to be ${isPaused}`);
             updatePromises.push(result.data);
-          } else if (result.data.code === "401") {
+          } else if (result.error.status === "401") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             const result = await reward.setIsPaused(isPaused);
             if (result.type === "data") {

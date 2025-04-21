@@ -6,7 +6,7 @@ import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { rewards } from '../api/reward.js';
 import { config } from '../../config.js'
-export default async function commandsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify, user_input: string) {
+export default async function subscriptionsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify, user_input: string) {
     console.log(subscriptionType);
     switch (subscriptionType) {
         case "channel.channel_points_custom_reward_redemption.add":
@@ -48,13 +48,12 @@ export default async function commandsHandler(subscriptionType: string, parsedSu
                     break;
                 }
                 case config.REWARDS[3].title: {
-                    await playerSaveSong(chatter, ircClient, nhanifyQueue, chatQueue);
+                    const result = await playerSaveSong(chatter, ircClient, nhanifyQueue, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
-                        const response = await reward.setRedeemStatus(parsedSubscription.id, "FULFILLED");
-                        if (response!.type === "success") {
-                            console.log(`Redeem ${response!.result.reward.title} was ${response!.result.status}.`)
-                        }
+                        const status = result.type === "success" ? "FULFILLED" : "CANCELED";
+                        const response = await reward.setRedeemStatus(parsedSubscription.id, status);
+                        if (response!.type === "success") console.log(`Redeem ${response!.result.reward.title} was ${response!.result.status}.`);
                     }
                     break;
                 }

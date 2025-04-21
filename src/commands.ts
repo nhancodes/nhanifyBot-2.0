@@ -15,7 +15,7 @@ export async function playerSaveSong(chatter: string, client: WebSocket, nhanify
     try {
         let payload = {
             url: `https://www.youtube.com/watch?v=${video?.videoId}`,
-            addedBy: chatter,
+            addedBy: chatter.toLowerCase(),
         }
         const response = await fetch(`${auth.NHANIFY_URL}/api/playlist/addSong`, {
             method: 'POST',

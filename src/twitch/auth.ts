@@ -1,94 +1,99 @@
 import auth from '../auth.json' with {type: 'json'};
-import { writeFileSync } from 'fs';
-import { Entity } from './eventSub/types.js';
-import open from 'open';
+import { ValidateResponse, RefreshResponse, WriteResponse, Entity, CreateResponse, AuthResult } from './types.js';
 import { tokenPromiseBot, tokenPromiseBroadcaster } from '../server/webServer.js';
-export async function authenticateTwitchToken(entity: Entity, TWITCH_TOKEN: string, REFRESH_TWITCH_TOKEN: string) {
-    try {
-        const response = await fetch('https://id.twitch.tv/oauth2/validate', {
-            method: 'GET',
-            headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
-        });
-        const body = await response.json();
-        if (response.status === 200) {
-            console.log(`${response.status}: Valid ${entity} token.`);
-        } else if (response.status === 401 && body.message === "invalid access token" || body.message === "missing authorization token") {
-            console.error(`${entity} : ${JSON.stringify(body)}`);
-            const result = await updateAuth(entity, REFRESH_TWITCH_TOKEN);
-            return result;
-        } else {
-            console.error(`${entity} : ${JSON.stringify(body)}`);
-        }
-    } catch (e) {
-        console.error(e);
-    }
+import { writeFileSync } from 'fs';
+import open from 'open';
+
+export function isAuthResultSuccess(result: AuthResult): boolean {
+    if (result.type === "error") {
+        console.log(result.error.message); 
+        return false; 
+    } 
+    console.log(result.message);
+    return true;
 }
 
-export async function updateAuth(entity: Entity, REFRESH_TWITCH_TOKEN: string): Promise<{ type: string; body: { [key: string]: string } }> {
-    try {
-        let result = await refreshAuthToken(entity, REFRESH_TWITCH_TOKEN);
-        console.log(result.body.scope);
-        console.log({ entity });
-        if (result.type === "data") {
-            const { access_token, refresh_token } = result.body;
-            if (entity === 'bot') {
-                console.log("CHANGING BOT")
-                auth.BOT_TWITCH_TOKEN = access_token;
-                auth.BOT_REFRESH_TWITCH_TOKEN = refresh_token;
-            } else {
-                console.log("CHANGING BROACASTER")
-                auth.BROADCASTER_TWITCH_TOKEN = access_token;
-                auth.BROADCASTER_REFRESH_TWITCH_TOKEN = refresh_token;
-            }
-            writeFileSync("./src/auth.json", JSON.stringify(auth));
-            console.log(`Wrote ${entity} token to json`);
-        } else if (result.type === "error") {
-            console.error(JSON.stringify(result.body));
-        }
-        return result;
-    } catch (e) {
-        console.error(e);
-        return { type: "error", body: { message: "Something went wrong when refreshing token" } };
+export async function authenticateTwitchToken(entity: Entity): Promise <AuthResult> {
+  const accessToken = entity === 'bot' ? auth.BOT_TWITCH_TOKEN : auth.BROADCASTER_TWITCH_TOKEN;
+  const refreshToken = entity === 'bot' ? auth.BOT_REFRESH_TWITCH_TOKEN : auth.BROADCASTER_REFRESH_TWITCH_TOKEN;
+  // validate the access token
+  const validateResult = await validate(accessToken);
+  if (validateResult.type === "error" && (validateResult.error.message === "invalid access token" || validateResult.error.message === "missing authorization token")) {
+    const refreshResult = await refresh(refreshToken);
+    // refresh the access token
+    if (refreshResult.type === "data") {
+      // write token to json
+      const { refresh_token, access_token } = refreshResult.data;
+      const writeResult = await write(entity, refresh_token, access_token);
+      return writeResult;
     }
+    if (refreshResult.type === "error" && refreshResult.error.status === 400) {
+      // authorize application on twitch account 
+      const userId = entity === 'bot' ? auth.BOT_ID : auth.BROADCASTER_ID;
+      const scope = entity === 'bot' ? 'chat:read+chat:edit' : 'channel:manage:redemptions+channel:read:redemptions';
+      const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=${scope}&state=c3ab8aa609ea11e793ae92361f002671-${userId}-${scope}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
+      await open(url);
+
+      // create new refresh and access token 
+      const tokenPromise = entity === 'bot' ? await tokenPromiseBot as CreateResponse : await tokenPromiseBroadcaster as CreateResponse;
+      if (tokenPromise.type === "data") {
+        // write tokens to json
+        const { refresh_token, access_token } = tokenPromise.data;
+        const writeResult = await write(entity, refresh_token, access_token);
+        return writeResult;
+      }
+      return tokenPromise;
+    }
+    return refreshResult;
+  }
+  return validateResult;
 }
 
-async function refreshAuthToken(entity: Entity, REFRESH_TWITCH_TOKEN: string) {
-    const userId = entity === 'bot' ? auth.BOT_ID : auth.BROADCASTER_ID; // bot: 987698925, broadcaster: 972045178
-    const scope = entity === 'bot' ? 'chat:read+chat:edit' : 'channel:manage:redemptions+channel:read:redemptions';
-    console.log({ entity, userId });
-    const payload = {
-        "grant_type": "refresh_token",
-        "refresh_token": REFRESH_TWITCH_TOKEN,
-        "client_id": auth.CLIENT_ID,
-        "client_secret": auth.CLIENT_SECRET
-    }
-    try {
-        const response = await fetch('https://id.twitch.tv/oauth2/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(payload).toString()
-        });
-        const body = await response.json();
-        if (response.status === 200) {
-            console.log(`${response.status}: Refresh ${entity} token.`);
-            return { type: "data", body };
-        }
-        if (response.status === 400) {
-            console.log(`Creating new ${entity} token`);
-            const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${auth.CLIENT_ID}&redirect_uri=http://localhost:${auth.WEB_SERVER_PORT}/authorize&force_verify=true&scope=${scope}&state=c3ab8aa609ea11e793ae92361f002671-${userId}-${scope}&nonce=c3ab8aa609ea11e793ae92361f002671 `;
-            await open(url);
-            let result;
-            if (entity === 'bot') {
-                result = await tokenPromiseBot as { type: string; body: { access_token: string; refresh_token: string } };
-            } else {
-                result = await tokenPromiseBroadcaster as { type: string; body: { access_token: string; refresh_token: string } };
+export async function validate(TWITCH_TOKEN: string): Promise<ValidateResponse> {
+  try {
+    const response = await fetch('https://id.twitch.tv/oauth2/validate', {
+      method: 'GET',
+      headers: { 'Authorization': 'OAuth ' + TWITCH_TOKEN }
+    });
+    const data = await response.json();
+    return response.ok ? { type: "data", data, message:`${data.login} with ${JSON.stringify(data.scopes)} scopes was successfully validated` } : { type: "error", error: data }
+  } catch (e) {
+    return { type: "error", error: { message: `Validated token error: ${JSON.stringify(e)}` } };
+  }
+}
 
-            }
-            return result;
-        }
-        return { type: "error", body };
-    } catch (e) {
-        console.error(e);
-        return { type: "error", body: { message: "Something went wrong when refreshing token" } };
+export async function write(entity: Entity, updatedRefreshToken: string, updatedAccessToken: string): Promise<WriteResponse> {
+  try {
+    if (entity === 'bot') {
+      auth.BOT_TWITCH_TOKEN = updatedAccessToken;
+      auth.BOT_REFRESH_TWITCH_TOKEN = updatedRefreshToken;
+    } else {
+      auth.BROADCASTER_TWITCH_TOKEN = updatedAccessToken
+      auth.BROADCASTER_REFRESH_TWITCH_TOKEN = updatedRefreshToken;
     }
+    writeFileSync("./src/auth.json", JSON.stringify(auth));
+    return { type: "data", data: { entity: entity }, message: `${entity} tokens successfully written to auth.json` };
+  } catch (e) {
+    return { type: "error", error: { message: `Write error: ${JSON.stringify(e)}` } };
+  }
+}
+
+async function refresh(REFRESH_TWITCH_TOKEN: string): Promise<RefreshResponse> {
+  const payload = {
+    "grant_type": "refresh_token",
+    "refresh_token": REFRESH_TWITCH_TOKEN,
+    "client_id": auth.CLIENT_ID,
+    "client_secret": auth.CLIENT_SECRET
+  }
+  try {
+    const response = await fetch('https://id.twitch.tv/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(payload).toString()
+    });
+    const data = await response.json();
+    return response.ok ? { type: "data", data, message: `Access token successfully refreshed` } : { type: "error", error: data }
+  } catch (e) {
+    return { type: "error", error: { message: `Refresh token error: ${JSON.stringify(e)}`} };
+  }
 }

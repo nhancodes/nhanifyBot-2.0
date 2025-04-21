@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { updateAuth } from '../auth.js';
+import {isAuthResultSuccess, authenticateTwitchToken } from '../auth.js';
 import auth from '../../auth.json' with {type: 'json'};
 import { parseMessage } from './parse/message.js';
 import { commandsHandler } from './commandsHandler.js';
@@ -36,7 +36,7 @@ export async function startTwitchIRCWebSocketClient(setIrcClient: (client: WebSo
       client.send('PONG :tmi.twitch.tv');
     } else if (message.includes(":tmi.twitch.tv NOTICE * :Login authentication failed")) {
       console.log({ message });
-      updateAuth('bot', auth.BOT_REFRESH_TWITCH_TOKEN);
+      if(!isAuthResultSuccess(await authenticateTwitchToken('bot'))) return;
     } else if (message.includes(":tmi.twitch.tv NOTICE * :Login unsuccessful")) {
       console.log({ message });
     } else {

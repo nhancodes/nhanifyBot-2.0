@@ -1,4 +1,3 @@
-export type Entity = 'bot' | 'broadcaster';
 //Session Types
 type SessionBase<Status extends string> = {
   status: Status;
@@ -55,10 +54,12 @@ type SubscriptionBase<SubscriptionType extends string> = {
 
 export interface RewardRedeemEvent extends SubscriptionBase<'channel.channel_points_custom_reward_redemption.add'> {
   broadcaster_name: string;
+  broadcaster_login: string;
+  user_login: string;
+  user_name: string;
   id: string;
   status: string;
   user_input: string;
-  user_name: string;
   reward: {
     id: string,
     title: string,

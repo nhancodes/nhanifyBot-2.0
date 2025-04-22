@@ -94,7 +94,7 @@ async function getNhanifyRewards() {
   if (createdRewardsResponses.length > 0) {
     console.log("Wrote new rewards to config.json");
     if (filePath === "config.json") return writeFileSync("./config.json", JSON.stringify(updatedConfig));
-    return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig));
+    return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig, null, 4));
   }
   console.log("No new rewards to write to config.json");
 }
@@ -188,7 +188,7 @@ class Rewards {
             reward.setReward(result.data);
             //console.log(`${reward.getTitle()} is now currently after setIsPaused: ${reward.getIsPaused()} and but it needs to be ${isPaused}`);
             updatePromises.push(result.data);
-          } else if (result.data.code === "401") {
+          } else if (result.error.status === "401") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             const result = await reward.setIsPaused(isPaused);
             if (result.type === "data") {

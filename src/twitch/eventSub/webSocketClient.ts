@@ -7,6 +7,7 @@ import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 
 export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
+    let startCounter = 0;
     let websocketClient = new WebSocket(EVENTSUB_WEBSOCKET_URL);
     console.log(`${EVENTSUB_WEBSOCKET_URL} Websocket client created`);
     websocketClient.on('error', (error) => {
@@ -19,8 +20,11 @@ export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL:
     websocketClient.on('close', (code, reason) => {
         console.log(`WebSocket connection closed on ${EVENTSUB_WEBSOCKET_URL} due to ${code}: ${reason}`);
         setTimeout(async () => {
-            await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify)
-        }, 5000)
+            if (startCounter < 1) {
+                await startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL, ircClient, webSocketServerClients, nhanifyQueue, chatQueue, nhanify)
+                startCounter += 1;
+            }
+        }, 2000)
     });
 
     websocketClient.on('message', async (event: Buffer) => {

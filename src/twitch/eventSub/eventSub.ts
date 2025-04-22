@@ -4,6 +4,7 @@ import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
 import { Entity } from '../types.js';
 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
+    let registerCounter = 0;
     try {
         const subEventURL = `${auth.EVENTSUB_HOST}/eventsub/subscriptions`;
         let response = await fetch(subEventURL, {
@@ -27,12 +28,17 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
             })
         });
         const result = await response.json();
-        if (response.status === 202) console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
+        if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
         if (result.message === "401: Failed to subscribe") {
-            if(!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
-            await registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
+            if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
+            if (registerCounter < 1) {
+                await registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
+                registerCounter += 1;
+            }
+        } else {
+            console.log(`Register event subs error: ${result.status}: ${result.message}`);
         }
     } catch (e) {
-        console.error(e);
+        console.error(`Register event subs error: ${JSON.stringify(e)}`);
     }
 }

@@ -22,6 +22,8 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
             case "playlist":
                 if (Queue.getPlayingOn() === "nhanify" && Queue.getIsPlaying()) {
                     const id = nhanifyQueue.getQueue().id;
+                    console.log("NHANIFY PLAYIST QUEUE:", nhanifyQueue.getQueue());
+                    console.log("NHANIFY PLAYLIST ID:", id);
                     client.send(`PRIVMSG ${channel} : @${chatter}, ${auth.NHANIFY_URL}/public/playlists/1/playlist/1/${id}`);
                 } else {
                     client.send(`PRIVMSG ${channel} : @${chatter}, no playlist from Nhanify is currently playing.`);
@@ -87,7 +89,7 @@ export async function commandsHandler(parsedMessage: ParsedMessage, client: WebS
                 }
                 playerSkipPlaylist(webSocketServerClients, client, nhanifyQueue, chatter!, chatQueue);
                 break;
-            case "saveSong": 
+            case "saveSong":
                 if (ONLY_BROADCASTER.saveSong) {
                     if (chatter !== auth.BROADCASTER_NAME) return client.send(`PRIVMSG ${channel} : @${chatter}, command can only be use by the boardcaster.`);
                 }

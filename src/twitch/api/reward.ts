@@ -188,7 +188,7 @@ class Rewards {
             reward.setReward(result.data);
             //console.log(`${reward.getTitle()} is now currently after setIsPaused: ${reward.getIsPaused()} and but it needs to be ${isPaused}`);
             updatePromises.push(result.data);
-          } else if (result.error.status === "401") {
+          } else if (result.error.status === 401) {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             const result = await reward.setIsPaused(isPaused);
             if (result.type === "data") {
@@ -262,7 +262,7 @@ class Reward {
     }
   }
 
-  async setIsPaused(state: boolean) {
+  async setIsPaused(state: boolean): Promise<{ type: "data", data: RewardType } | { type: "error", error: { status?: number, message?: string } }> {
     try {
       const response = await fetch(
         `https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id=${auth.BROADCASTER_ID}&id=${this.reward.id}`,
@@ -276,8 +276,10 @@ class Reward {
           body: JSON.stringify({ is_paused: state })
         }
       )
+      //console.log(response.status)
       const data = await response.json();
-      return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: data };
+      if (!response.ok) console.log(`setIsPausedResponse: ${data}`);
+      return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: { status: response.status } };
     } catch (e) {
       return { type: "error", error: { message: `Twitch setIsPaused error: ${JSON.stringify(e)}` } };
     }

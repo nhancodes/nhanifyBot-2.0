@@ -116,8 +116,8 @@ export async function playerSkipSong(webSocketServerClients: Set<WebSocket>, cli
             // increment by playlistIndex mod playlistLength 
             Queue.setPlayingOn("nhanify");
             const config = await nhanify.nextPlaylist();
-            const { videos, title, creator } = config;
-            nhanifyQueue.nextQueue({ type: "nhanify", title, creator, videos });
+            const { videos, title, creator, id } = config;
+            nhanifyQueue.nextQueue({ type: "nhanify", id, title, creator, videos });
             webSocketServerClients.forEach(client => {
                 client.send(JSON.stringify({ action: "play", queue: nhanifyQueue.getQueue() }));
             });

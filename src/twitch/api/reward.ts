@@ -278,7 +278,7 @@ class Reward {
       )
       //console.log(response.status)
       const data = await response.json();
-      if (!response.ok) console.log(`setIsPausedResponse: ${data}`);
+      if (!response.ok) console.log(`setIsPausedResponse: ${JSON.stringify(data)}`);
       return response.ok ? { type: "data", data: data.data[0] } : { type: "error", error: { status: response.status } };
     } catch (e) {
       return { type: "error", error: { message: `Twitch setIsPaused error: ${JSON.stringify(e)}` } };

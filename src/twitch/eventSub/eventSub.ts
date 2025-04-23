@@ -29,7 +29,7 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
         });
         const result = await response.json();
         if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
-        if (result.message === "401: Failed to subscribe") {
+        if (result.status === 401 && result.message === "Invalid OAuth token") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             if (registerCounter < 1) {
                 await registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);

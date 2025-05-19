@@ -29,7 +29,8 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
             })
         });
         const result = await response.json();
-        console.log("EVENT REGISTER REASULTS: ", { result });
+        console.log("register event sub result ", { result });
+        console.log(`isStatus401: ${result.status === 401} && isInvalidToken: ${result.message === "Invalid OAuth token"}`);
         if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
         if (result.status === 401 && result.message === "Invalid OAuth token") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
@@ -41,6 +42,6 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
             console.log(`Register event subs error: ${result.status}: ${result.message}`);
         }
     } catch (e) {
-        console.error(`Register event subs error: ${JSON.stringify(e)}`);
+        console.error(`Register event subs exceptional error: ${JSON.stringify(e)}`);
     }
 }

@@ -29,6 +29,7 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
         });
         const result = await response.json();
         if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
+        console.log("IN SUBREG: ", { result });
         if (result.status === 401 && result.message === "Invalid OAuth token") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             if (registerCounter < 1) {

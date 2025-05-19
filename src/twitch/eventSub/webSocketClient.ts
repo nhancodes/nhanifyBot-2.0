@@ -52,7 +52,6 @@ export async function handleWebSocketMessage(data: Message, ircClient: WebSocket
     switch (data.message_type) {
         case 'session_welcome': // First message you get from the WebSocket server when connecting
             console.log(data.payload.session.id);
-            console.log("REGISTER EVENT SUBS");
             await registerEventSubListener('broadcaster', 'channel.channel_points_custom_reward_redemption.add', '1', data.payload.session.id, auth.BROADCASTER_TWITCH_TOKEN);
             break;
         case 'notification': // An EventSub notification has occurred, such as channel.chat.message

@@ -4,6 +4,7 @@ import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
 import { Entity } from '../types.js';
 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
+    console.log("REGISTERING EVENTS");
     let registerCounter = 0;
     try {
         const subEventURL = `${auth.EVENTSUB_HOST}/eventsub/subscriptions`;
@@ -28,8 +29,8 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
             })
         });
         const result = await response.json();
+        console.log("EVENT REGISTER REASULTS: ", { result });
         if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
-        console.log("IN SUBREG: ", { result });
         if (result.status === 401 && result.message === "Invalid OAuth token") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             if (registerCounter < 1) {

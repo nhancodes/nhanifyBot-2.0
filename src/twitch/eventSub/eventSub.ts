@@ -31,10 +31,12 @@ export async function registerEventSubListener(entity: Entity, type: string, ver
         const result = await response.json();
         console.log("register event sub result ", { result });
         console.log(`isStatus401: ${result.status === 401} && isInvalidToken: ${result.message === "Invalid OAuth token"}`);
+        console.log("BEFORE ISAUTH.. -> AUTH JSON TOKEN: ", auth.BROADCASTER_TWITCH_TOKEN, "PASSED IN TOKEN: ", TWITCH_TOKEN);
         if (response.ok) return console.log(`Subscribed to ${result.data[0].type} [${result.data[0].id}]`);
         if (result.status === 401 && result.message === "Invalid OAuth token") {
             if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
             if (registerCounter < 1) {
+                console.log("AFTER ISAUTH.. -> AUTH JSON TOKEN: ", auth.BROADCASTER_TWITCH_TOKEN, "PASSED IN TOKEN: ", TWITCH_TOKEN);
                 await registerEventSubListener(entity, type, version, websocketSessionID, TWITCH_TOKEN);
                 registerCounter += 1;
             }

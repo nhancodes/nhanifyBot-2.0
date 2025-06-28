@@ -10,7 +10,14 @@ export const nhanify: Nhanify = {
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
     async setPlaylistsById(playlistIds: number[]) {
+        console.log("IN SET PLAYLISTS: ", { playlistIds });
+        /*if (playlistIds.length === 0) {
+            this.playlists = [];
+            console.log("No valid playlist ids to fetch from Nhanify.");
+            return;
+        }*/
         this.playlists = await getPlaylistsById(playlistIds);
+        console.log("THESE PLAYLISTS FROM NHANIFY API", this.playlists);
         if (this.playlists.length === 0) console.log("None of the specified playlists were not found on Nhanify.");
         this.playlists.forEach(playlist => console.log(JSON.stringify(playlist)));
     },
@@ -38,8 +45,8 @@ export const nhanify: Nhanify = {
         return this.playlists[this.playlistIndex % this.playlists.length]; //0 % 4 4 % 4
     },
     async getSongs(playlistId: number): Promise<YTVideo[]> {
-        //console.log("ID____", playlistId);
-        const response = await fetch(`${auth.NHANIFY_URL}/api/playlists/${playlistId}`, {
+        console.log("ID____", playlistId);
+        const response = await fetch(`${auth.NHANIFY_URL}/api/playlist/${playlistId}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${auth.NHANIFY_API_KEY}`,

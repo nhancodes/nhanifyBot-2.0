@@ -31,7 +31,7 @@ export async function playerSaveSong(chatter: string, client: WebSocket, nhanify
             body: JSON.stringify(payload)
         });
         const result = await response.json();
-        switch (result.msg) {
+        switch (result.message) {
             case 'success':
                 client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, ${result.song.title} was added to your "Saved Song" playlist. You can find the playlist at ${auth.NHANIFY_URL}/your/playlists/1/playlist/1/${result.song.playlist_id}`);
                 if (!(chatter! in savedVideos)) {

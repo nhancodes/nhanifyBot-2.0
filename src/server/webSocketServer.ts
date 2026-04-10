@@ -1,10 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Queue } from '../videoAPI/queue.js';
 import { webServer } from './webServer.js';
-import auth from '../auth.json' with {type: 'json'};
+//import auth from '../auth.json' with {type: 'json'};
+import { config } from '../config.js';
 import { Nhanify } from '../videoAPI/types.js';
 import { Rewards } from '../twitch/api/reward.js';
 import { playerReady } from '../commands.js';
+const { AUTH: auth } = config;
+
 export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     const wss = new WebSocketServer({ server: webServer });
     console.log('WebSocketServer created.');
@@ -21,7 +24,7 @@ export function startWebSocketServer(chatQueue: Queue, nhanifyQueue: Queue, nhan
                         if (Queue.getPlayingOn() === 'nhanify') nhanifyQueue.remove();
                         if (Queue.getPlayingOn() === 'chat') chatQueue.remove();
                     case "ready":
-                        playerReady(ws, chatQueue, nhanifyQueue,nhanify);
+                        playerReady(ws, chatQueue, nhanifyQueue, nhanify);
                         break;
                     case "pause":
                     case "resume":

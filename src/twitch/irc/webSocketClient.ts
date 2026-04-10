@@ -1,11 +1,13 @@
 import WebSocket from 'ws';
-import {isAuthResultSuccess, authenticateTwitchToken } from '../auth.js';
-import auth from '../../auth.json' with {type: 'json'};
+import { isAuthResultSuccess, authenticateTwitchToken } from '../auth.js';
+//import auth from '../../auth.json' with {type: 'json'};
+import { config } from '../../config.js';
 import { parseMessage } from './parse/message.js';
 import { commandsHandler } from './commandsHandler.js';
 import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
+const { AUTH: auth } = config;
 
 export async function startTwitchIRCWebSocketClient(setIrcClient: (client: WebSocket) => void, IRC_WEBSOCKET_URL: string, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
   const client = new WebSocket(IRC_WEBSOCKET_URL);
@@ -36,7 +38,7 @@ export async function startTwitchIRCWebSocketClient(setIrcClient: (client: WebSo
       client.send('PONG :tmi.twitch.tv');
     } else if (message.includes(":tmi.twitch.tv NOTICE * :Login authentication failed")) {
       console.log({ message });
-      if(!isAuthResultSuccess(await authenticateTwitchToken('bot'))) return;
+      if (!isAuthResultSuccess(await authenticateTwitchToken('bot'))) return;
     } else if (message.includes(":tmi.twitch.tv NOTICE * :Login unsuccessful")) {
       console.log({ message });
     } else {

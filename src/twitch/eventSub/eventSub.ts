@@ -1,7 +1,9 @@
 
-import auth from '../../auth.json' with {type: 'json'};
+//import auth from '../../auth.json' with {type: 'json'};
+import { config } from '../../config.js';
 import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
 import { Entity } from '../types.js';
+const { AUTH: auth } = config;
 
 export async function registerEventSubListener(entity: Entity, type: string, version: string, websocketSessionID: string, TWITCH_TOKEN: string) {
     console.log("REGISTERING EVENTS");

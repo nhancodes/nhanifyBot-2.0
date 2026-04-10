@@ -6,6 +6,8 @@ import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { rewards } from '../api/reward.js';
 import { config } from '../../config.js'
+const { BOT: bot } = config;
+
 export default async function subscriptionsHandler(subscriptionType: string, parsedSubscription: RewardRedeemEvent, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify, user_input: string) {
     console.log(subscriptionType);
     switch (subscriptionType) {
@@ -14,7 +16,7 @@ export default async function subscriptionsHandler(subscriptionType: string, par
             //const chatter = ircCommand.getChatter();
             const chatter = parsedSubscription.user_name;
             switch (title) {
-                case config.REWARDS[0].title: {
+                case bot.REWARDS[0].title: {
                     await playerSkipSong(webSocketServerClients, ircClient, nhanifyQueue, chatQueue, chatter, nhanify);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
@@ -25,7 +27,7 @@ export default async function subscriptionsHandler(subscriptionType: string, par
                     }
                     break;
                 }
-                case config.REWARDS[1].title: {
+                case bot.REWARDS[1].title: {
                     await playerSkipPlaylist(webSocketServerClients, ircClient, nhanifyQueue, chatter, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
@@ -36,7 +38,7 @@ export default async function subscriptionsHandler(subscriptionType: string, par
                     }
                     break;
                 }
-                case config.REWARDS[2].title: {
+                case bot.REWARDS[2].title: {
                     await playerRequestSong(webSocketServerClients, ircClient, chatQueue, chatter, user_input);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {
@@ -47,7 +49,7 @@ export default async function subscriptionsHandler(subscriptionType: string, par
                     }
                     break;
                 }
-                case config.REWARDS[3].title: {
+                case bot.REWARDS[3].title: {
                     const result = await playerSaveSong(chatter, ircClient, nhanifyQueue, chatQueue);
                     const reward = rewards.getRewardById(parsedSubscription.reward.id);
                     if (reward) {

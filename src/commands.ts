@@ -4,8 +4,9 @@ import { Queue, savedVideos } from './videoAPI/queue.js';
 import { isValidURL, getVideoById, parseURL } from './videoAPI/youtube/dataAPI.js';
 import { nhanify } from './videoAPI/nhanify/dataAPI.js';
 import { Nhanify } from './videoAPI/types.js';
-import auth from './auth.json' with {type: 'json'};
-
+//import auth from './auth.json' with {type: 'json'};
+import { config } from './config.js';
+const { AUTH: auth } = config;
 export async function playerSaveSong(chatter: string, client: WebSocket, nhanifyQueue: Queue, chatQueue: Queue) {
     if (!Queue.getPlayingOn() || !Queue.getIsPlaying()) {
         client.send(`PRIVMSG #${auth.BROADCASTER_NAME} : @${chatter}, No song playing to save.`);

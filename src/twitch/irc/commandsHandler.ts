@@ -1,13 +1,15 @@
 import { WebSocket } from 'ws';
 import { ParsedMessage } from './types.js';
-import auth from '../../auth.json' with {type: 'json'};
+//import auth from '../../auth.json' with {type: 'json'};
+import { config } from '../../config.js';
 import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
 import { Rewards } from '../api/reward.js';
 import { playerRequestSong, playerSaveSong, playerSkipPlaylist, playerSkipSong } from '../../commands.js';
 import { ircCommand } from './ircCommand.js';
-import { config } from '../../config.js'
-const { ONLY_BROADCASTER, COMMANDS } = config;
+//import { config } from '../../config.js'
+const { BOT: bot, AUTH: auth } = config;
+const { ONLY_BROADCASTER, COMMANDS } = bot;
 export async function commandsHandler(parsedMessage: ParsedMessage, client: WebSocket, chatQueue: Queue, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, nhanify: Nhanify, rewards: Rewards) {
     if (parsedMessage?.command?.type === "botCommand") {
         const chatter = parsedMessage.source?.nick;

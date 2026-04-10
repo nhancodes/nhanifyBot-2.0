@@ -7,6 +7,7 @@ import { Queue } from './videoAPI/queue.js';
 import { ChatQueue, Nhanify, NhanifyQueue } from './videoAPI/types.js';
 import { getNhanifyRewards, rewards } from './twitch/api/reward.js';
 import { config } from './config.js';
+const { BOT: bot } = config;
 type PlaylistsConfig = { nhanify: Nhanify, queue: NhanifyQueue };
 const KEEPALIVE_INTERVAL_MS = 10000;
 const EVENTSUB_WEBSOCKET_URL = `wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=${KEEPALIVE_INTERVAL_MS / 1000}`;
@@ -19,11 +20,11 @@ const chatQueue = new Queue({ type: "chat", videos: [] } as ChatQueue);
     if (!isAuthResultSuccess(await authenticateTwitchToken('broadcaster'))) return;
     await getNhanifyRewards();
     async function getNhanifyVideos(): Promise<PlaylistsConfig> {
-        if (config.NHANIFY.enabled) {
+        if (bot.NHANIFY.enabled) {
             try {
                 const { nhanify } = await import('./videoAPI/nhanify/dataAPI.js');
                 if (nhanify) {
-                    config.NHANIFY.playlistsById.length === 0 ? await nhanify.setPublicPlaylists() : await nhanify!.setPlaylistsById(config.NHANIFY.playlistsById);
+                    bot.NHANIFY.playlistsById.length === 0 ? await nhanify.setPublicPlaylists() : await nhanify!.setPlaylistsById(bot.NHANIFY.playlistsById);
                     if (nhanify!.playlists.length === 0) return { nhanify: null, queue: { type: "nhanify", videos: [] } } as PlaylistsConfig;
 
                     const playlistsConfig = await nhanify.nextPlaylist();

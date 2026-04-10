@@ -1,11 +1,13 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 import fs from 'fs';
 import path from 'path';
-import auth from '../auth.json' with {type: 'json'};
+//import auth from '../auth.json' with {type: 'json'};
+import { config } from '../config.js';
 import { CreateResponse } from '../twitch/types.js';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public'); // Moving up from server to public
 const INDEX_FILE = path.join(PUBLIC_DIR, 'index.html');
+const { AUTH: auth } = config;
 
 let resolveCodePromiseBot: (result: CreateResponse) => void;
 let tokenPromiseBot = new Promise((resolve) => {

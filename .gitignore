@@ -1,5 +1,6 @@
 .idea/
 src/auth.json
+src/auth.dev.json
 node_modules
 config.json
 config.dev.json

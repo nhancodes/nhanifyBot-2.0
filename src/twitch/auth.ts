@@ -1,9 +1,10 @@
-import auth from '../auth.json' with {type: 'json'};
+//import auth from '../auth.json' with {type: 'json'};
+import { config } from '../config.js';
 import { ValidateResponse, RefreshResponse, WriteResponse, Entity, CreateResponse, AuthResult } from './types.js';
 import { tokenPromiseBot, tokenPromiseBroadcaster } from '../server/webServer.js';
 import { writeFileSync } from 'fs';
 import open from 'open';
-
+const { AUTH: auth, BOT: bot } = config;
 export function isAuthResultSuccess(result: AuthResult): boolean {
   if (result.type === "error") {
     console.log(result.error.message);
@@ -71,8 +72,8 @@ export async function write(entity: Entity, updatedRefreshToken: string, updated
       auth.BROADCASTER_TWITCH_TOKEN = updatedAccessToken
       auth.BROADCASTER_REFRESH_TWITCH_TOKEN = updatedRefreshToken;
     }
-    writeFileSync("./src/auth.json", JSON.stringify(auth, null, 4));
-    return { type: "data", data: { entity: entity }, message: `${entity} tokens successfully written to auth.json` };
+    auth.ENV === "prod" ? writeFileSync("./src/auth.json", JSON.stringify(auth, null, 4)) : writeFileSync("./src/auth.dev.json", JSON.stringify(auth, null, 4));
+    return { type: "data", data: { entity: entity }, message: `${entity} tokens successfully written to ${auth.ENV} auth.json` };
   } catch (e) {
     return { type: "error", error: { message: `Write error: ${JSON.stringify(e)}` } };
   }

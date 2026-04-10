@@ -1,6 +1,8 @@
 import { getVideoById, parseURL, isValidURL } from "./dataAPI.js";
-import auth from '../../auth.json' with {type: 'json' };
+//import auth from '../../auth.json' with {type: 'json' };
 
+import { config } from '../../config.js';
+const { AUTH: auth } = config;
 
 const invalidUrls: [string, boolean][] = [
     ["https://www.youtube.com/embed/QkGAoYtXA0", false],

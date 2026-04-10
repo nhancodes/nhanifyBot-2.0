@@ -2,9 +2,11 @@ import WebSocket from 'ws';
 import { Message, RewardRedeemEvent } from './types.js';
 import subscriptionsHandler from './subscriptionsHandler.js';
 import { registerEventSubListener } from './eventSub.js';
-import auth from '../../auth.json' with {type: 'json'};
+//import auth from '../../auth.json' with {type: 'json'};
+import { config } from '../../config.js';
 import { Queue } from '../../videoAPI/queue.js';
 import { Nhanify } from '../../videoAPI/types.js';
+const { AUTH: auth } = config;
 
 export async function startTwitchEventSubWebSocketClient(EVENTSUB_WEBSOCKET_URL: string, ircClient: WebSocket, webSocketServerClients: Set<WebSocket>, nhanifyQueue: Queue, chatQueue: Queue, nhanify: Nhanify) {
     let startCounter = 0;

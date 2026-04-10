@@ -1,7 +1,9 @@
-import auth from '../../auth.json' with {type: 'json'};
+//import auth from '../../auth.json' with {type: 'json'};
+import { config } from '../../config.js';
 import { writeFileSync } from 'fs';
-import { config, filePath } from '../../config.js';
+//import { config, filePath } from '../../config.js';
 import { authenticateTwitchToken, isAuthResultSuccess } from '../auth.js';
+const { AUTH: auth, BOT: bot } = config;
 type State = { [key: string]: boolean };
 
 interface RewardBase {
@@ -50,7 +52,7 @@ function transformRewardsState(): { [key: string]: State } {
   const result: { [key: string]: State } = {};
   queueStates.forEach(queueState => {
     const state: State = {};
-    config.REWARDS.forEach(reward => {
+    bot.REWARDS.forEach(reward => {
       state[reward.title] = reward.isPausedStates[queueState];
     });
     result[queueState] = state;
@@ -62,7 +64,7 @@ const isPausedStates: { [key: string]: State } = transformRewardsState();
 
 
 async function getNhanifyRewards() {
-  const promises = config.REWARDS.map((reward: ConfigReward) => {
+  const promises = bot.REWARDS.map((reward: ConfigReward) => {
     return getRewardFromTwitch(reward);
   });
   const rewardsResponses = await Promise.all(promises);
@@ -90,10 +92,10 @@ async function getNhanifyRewards() {
   //update the config json
   const rewardsConfig = rewards.getJsonConfig();
 
-  const updatedConfig = { ...config, REWARDS: rewardsConfig };
+  const updatedConfig = { ...bot, REWARDS: rewardsConfig };
   if (createdRewardsResponses.length > 0) {
     console.log("Wrote new rewards to config.json");
-    if (filePath === "config.json") return writeFileSync("./config.json", JSON.stringify(updatedConfig));
+    if (auth.ENV === "prod") return writeFileSync("./config.json", JSON.stringify(updatedConfig));
     return writeFileSync("./config.dev.json", JSON.stringify(updatedConfig, null, 4));
   }
   console.log("No new rewards to write to config.json");
@@ -130,7 +132,7 @@ async function createReward(reward: ConfigReward): Promise<RewardResponse> {
       is_global_cooldown_enabled: true,
       global_cooldown_seconds: 10
     };
-    if (reward.title === config.REWARDS[2].title) {
+    if (reward.title === bot.REWARDS[2].title) {
       body.is_user_input_required = true;
       body.prompt = "Enter a valid youtube url.";
     }
@@ -208,7 +210,7 @@ class Rewards {
 
   getJsonConfig() {
     return this.getRewards().map((reward: RewardType) => {
-      const rewardFound = config.REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
+      const rewardFound = bot.REWARDS.find(rewardConfig => rewardConfig.title === reward.title);
       return { id: reward.id, title: reward.title, cost: reward.cost, isPausedStates: rewardFound?.isPausedStates };
     });
   }

@@ -1,6 +1,7 @@
-import auth from '../../auth.json' with {type: 'json'};
+//import auth from '../../auth.json' with {type: 'json'};
 import { Nhanify, NhanifyPlaylist, NhanifyQueue, PlaylistAPI, YTVideo } from '../types.js';
 import { config } from '../../config.js';
+const { AUTH: auth, BOT: bot } = config;
 export const nhanify: Nhanify = {
     playlistIndex: 0,
     playlists: [],
@@ -55,7 +56,7 @@ export const nhanify: Nhanify = {
         });
 
         const playlist: { songs: { durationSec: number }[] } = await response.json();
-        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= config.VIDEO_MAX_DURATION);
+        const filterPlaylists = playlist.songs.filter(song => song.durationSec <= bot.VIDEO_MAX_DURATION);
         if (filterPlaylists.length > 0) return shuffleItems(filterPlaylists as YTVideo[]);
         return [];
     },
@@ -97,6 +98,8 @@ async function getPublicPlaylists() {
         },
     });
     const result = await response.json();
+    console.log("GET PUBLIC PLAYLISTS");
+    console.log({ result });
     const filteredPlaylists = result.playlists.filter((playlist: { songCount: number; }) => playlist.songCount > 0);
     const playlists = filteredPlaylists.map((playlist: { id: number; title: string; creator: { username: string; }; }) => {
         return {
